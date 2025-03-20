@@ -15,13 +15,15 @@
 #include "ftxui/dom/elements.hpp" // for text, color, operator|, bgcolor, filler, Element, vbox, size, hbox, separator, flex, window, graph, EQUAL, paragraph, WIDTH, hcenter, Elements, bold, vscroll_indicator, HEIGHT, flexbox, hflow, border, frame, flex_grow, gauge, paragraphAlignCenter, paragraphAlignJustify, paragraphAlignLeft, paragraphAlignRight, dim, spinner, LESS_THAN, center, yframe, GREATER_THAN
 
 #include "Config.hpp"
-#include "Console.hpp"
+#include "Log/Logger.hpp"
+#include "Shell/Shell.hpp"
 
 using namespace ftxui;
 
 int main() {
-  auto config = std::make_unique<Config>(
-      "config.yaml"); // no need to manually dereference
+  auto logger = std::make_shared<Logger>();
+  auto shell = std::make_unique<Shell>(logger);
+  auto config = std::make_unique<Config>("config.yaml");
   auto screen = ScreenInteractive::Fullscreen();
 
   int shift = 0;
@@ -37,7 +39,6 @@ int main() {
   // ---------------------------------------------------------------------------
 
   auto custom_scripts_config = config->custom_scripts;
-  std::string cs_console_output;
   int cs_selected_index = 0;
 
   std::vector<std::string> cs_entries;
@@ -51,21 +52,12 @@ int main() {
     const CustomScript &selected_script =
         custom_scripts_config.at(cs_selected_index);
 
-    std::string output =
-        Console::execute_custom_command(selected_script, cs_console_output);
-    cs_console_output = output;
+    shell->execute_custom_command(selected_script);
   };
 
   auto cs_menu = Menu(&cs_entries, &cs_selected_index, cs_option);
 
-  auto cs_render_console_output = [&cs_console_output]() {
-    return hbox({text("console output: "), text(cs_console_output)});
-  };
-  auto cs_renderer = Renderer([cs_render_console_output] {
-    return vbox({cs_render_console_output()}) | frame;
-  });
-
-  auto cs_container = Container::Horizontal({cs_menu, cs_renderer});
+  auto cs_container = Container::Horizontal({cs_menu});
 
   if (!config->custom_scripts.empty()) {
     tab_entries.push_back("custom scripts");
@@ -76,7 +68,6 @@ int main() {
   // ---------------------------------------------------------------------------
 
   auto repo_config = config->repositories;
-  std::string repositories_console_output;
   int repositories_selected_index = 0;
 
   std::vector<std::string> repositories_entries;
@@ -91,23 +82,13 @@ int main() {
     const std::string clone_to =
         repo_config.clone_path + '/' + selected_repo.name;
 
-    std::string output =
-        Console::execute_git_clone(selected_repo.url, clone_to);
-    repositories_console_output = output;
+    shell->execute_git_clone(selected_repo.url, clone_to);
   };
 
   auto repos_menu = Menu(&repositories_entries, &repositories_selected_index,
                          repositories_option);
 
-  auto render_repositories_console_output = [&repositories_console_output]() {
-    return hbox({text("console output: "), text(repositories_console_output)});
-  };
-  auto repositories_renderer = Renderer([render_repositories_console_output] {
-    return vbox({render_repositories_console_output()}) | frame;
-  });
-
-  auto repositories_container =
-      Container::Horizontal({repos_menu, repositories_renderer});
+  auto repositories_container = Container::Horizontal({repos_menu});
 
   if (!config->repositories.vector.empty()) {
     tab_entries.push_back("repositories");
@@ -115,12 +96,12 @@ int main() {
   }
 
   // ---------------------------------------------------------------------------
-  // C++
+  // Languages
   // ---------------------------------------------------------------------------
 
-  auto *languages_config = &config->languages;
+  auto languages_config = config->languages;
 
-  for (const auto &language : *languages_config) {
+  for (const auto &language : languages_config) {
     auto tools = language->get_loaded_tools();
 
     std::string console_output;
@@ -129,13 +110,14 @@ int main() {
     }
 
     auto render_console_output = [console_output]() {
-      return hbox({text("Lang console output: "), text(console_output)});
+      return hbox({text("Lang console output: "), text(console_output)}) |
+             border | flex;
     };
     auto lang_renderer = Renderer([render_console_output] {
-      return vbox({render_console_output()}) | frame;
+      return vbox({render_console_output()}) | flex;
     });
 
-    auto lang_container = Container::Horizontal({lang_renderer});
+    auto lang_container = Container::Vertical({lang_renderer});
 
     if (!tools.empty()) {
       tab_entries.push_back(language->get_name());
@@ -153,13 +135,15 @@ int main() {
   auto exit_button =
       Button("Exit", [&] { screen.Exit(); }, ButtonOption::Animated());
 
-  auto main_container = Container::Vertical({
-      Container::Horizontal({
-          tab_selection,
-          exit_button,
-      }),
-      tab_content,
+  auto logger_renderer = logger->renderer;
+
+  auto tab_selection_container = Container::Horizontal({
+      tab_selection,
+      exit_button,
   });
+
+  auto main_container =
+      Container::Vertical({tab_selection_container, tab_content});
 
   auto main_renderer = Renderer(main_container, [&] {
     return vbox({
@@ -168,9 +152,15 @@ int main() {
             tab_selection->Render() | flex,
             exit_button->Render(),
         }),
-        tab_content->Render() | flex,
+        hbox({
+            tab_content->Render(),
+        }),
     });
   });
+
+  int paragraph_renderer_split_position = Terminal::Size().dimx / 1.5;
+  auto group_renderer = ResizableSplitLeft(main_renderer, logger_renderer,
+                                           &paragraph_renderer_split_position);
 
   std::atomic<bool> refresh_ui_continue = true;
   std::thread refresh_ui([&] {
@@ -187,7 +177,7 @@ int main() {
     }
   });
 
-  screen.Loop(main_renderer);
+  screen.Loop(group_renderer);
   refresh_ui_continue = false;
   refresh_ui.join();
 

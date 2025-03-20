@@ -29,7 +29,7 @@ public:
     };
   }
   // Factory method to create the language instance based on the string input
-  std::unique_ptr<Language> create(const std::string &language_name) {
+  std::shared_ptr<Language> create(const std::string &language_name) {
     if (language_factory_map.find(language_name) !=
         language_factory_map.end()) {
       return language_factory_map[language_name]();
@@ -40,11 +40,11 @@ public:
     }
   }
 
-  template <typename T> std::unique_ptr<Language> create_language() {
+  template <typename T> std::shared_ptr<Language> create_language() {
     return std::make_unique<T>(); // Create the specific language instance
   };
   // Map that associates language names with their creation function
-  std::unordered_map<std::string, std::function<std::unique_ptr<Language>()>>
+  std::unordered_map<std::string, std::function<std::shared_ptr<Language>()>>
       language_factory_map;
 };
 

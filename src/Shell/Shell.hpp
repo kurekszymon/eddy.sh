@@ -1,32 +1,34 @@
-#ifndef CONSOLE_H
-#define CONSOLE_H
 
+#include <boost/asio.hpp>
 #include <iostream>
-#include <string>
-#include <unordered_set>
+#include <memory>
 #include <vector>
 
 #include "boost/filesystem.hpp"
 #include "boost/process.hpp"
 
-#include "Config.hpp"
+#include "../Config.hpp" // only for CustomScript type import, move it to seperate file
+#include "../Log/Logger.hpp"
 namespace bp = boost::process;
 namespace bfs = boost::filesystem;
 
-class Console {
+class Shell {
 public:
-  inline static std::string retrieve_std_out(bp::ipstream &pipe_stream) {
+  explicit Shell(std::shared_ptr<Logger> logger) : logger_(logger) {}
+
+  std::string pipe_output(bp::ipstream &pipe_stream, std::string src) {
     std::string output;
 
     std::string line;
     while (std::getline(pipe_stream, line)) {
-      output += line + "\n \t"; // Append each line of output to the string
+      logger_->update(src + ": " + line);
     }
 
     pipe_stream.close();
     return output;
   };
-  inline static std::string parse_home_dir(std::string input_path) {
+
+  std::string parse_home_dir(std::string input_path) {
     if (input_path.empty() || input_path[0] != '~') {
       return input_path;
     }
@@ -42,8 +44,8 @@ public:
     bfs::path result = home_dir / input_path.substr(1);
     return result.string();
   };
-  inline static std::string execute_custom_command(CustomScript command,
-                                                   std::string messages) {
+
+  std::string execute_custom_command(CustomScript command) {
     bp::ipstream std_out;
     bp::ipstream std_err;
 
@@ -52,43 +54,40 @@ public:
     bp::child c(bp::search_path("sh"), args, bp::std_out > std_out,
                 bp::std_err > std_err);
 
+    std::string output = pipe_output(std_out, command.name);
+    std::string err_output = pipe_output(std_err, command.name);
+
     c.wait();
 
-    std::string output = retrieve_std_out(std_out);
-    std::string err_output = retrieve_std_out(std_err);
-
     if (c.exit_code() > 0) {
+      std::string code = std::to_string(c.exit_code());
       if (!err_output.empty()) {
-        return "Command exited with code: " + std::to_string(c.exit_code()) +
-               " " + err_output;
+        return command.name + " exited with code: " + code + " " + err_output;
       }
 
-      return "Command exited with code: " + std::to_string(c.exit_code());
+      return command.name + " exited with code: " + code;
     }
 
     return output;
   }
-  inline static std::string execute_git_clone(const std::string &repo_url,
-                                              const std::string &clone_dir) {
-    bp::ipstream std_out;
+
+  std::string execute_git_clone(const std::string &repo_url,
+                                const std::string &clone_dir) {
+    // TODO: handle git clone async command in logger
     bp::ipstream std_err;
     std::vector<std::string> args = {"clone", repo_url,
                                      parse_home_dir(clone_dir)};
 
-    bp::child c(bp::search_path("git"), args, bp::std_out > std_out,
-                bp::std_err > std_err);
+    bp::child c(bp::search_path("git"), args,
+                bp::std_err > std_err); // git clone writes to std_err.
+
+    std::string output = pipe_output(std_err, "git clone");
 
     c.wait();
 
-    std::string output = retrieve_std_out(std_out);
-    std::string err_output = retrieve_std_out(std_err);
-
-    if (!err_output.empty()) {
-      return err_output;
-    }
-
     return output;
   };
-};
 
-#endif // CONSOLE_H
+private:
+  std::shared_ptr<Logger> logger_;
+};
