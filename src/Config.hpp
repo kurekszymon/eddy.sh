@@ -34,7 +34,7 @@ class Config {
 public:
   Repositories repositories;
   std::vector<CustomScript> custom_scripts;
-  std::vector<std::unique_ptr<Language>> languages;
+  std::vector<std::shared_ptr<Language>> languages;
 
   Config(const std::string &yaml_file);
 

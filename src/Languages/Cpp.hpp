@@ -11,6 +11,6 @@ class Cpp : public Language {
     return tools;
   }
 
-  const std::string get_name() const override { return "Cpp"; }
+  std::string get_name() const override { return "Cpp"; }
 };
 #endif // CPP_H

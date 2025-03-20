@@ -23,7 +23,7 @@ using LoadedTool = std::pair<std::string, std::string>;
 class Language {
 public:
   virtual const ToolMap &get_tools() const = 0;
-  virtual const std::string get_name() const = 0;
+  virtual std::string get_name() const = 0;
 
   virtual std::vector<LoadedTool> get_loaded_tools() {
     const auto &tools = get_tools();
@@ -31,7 +31,7 @@ public:
 
     for (const auto &tool : tools) {
       std::string name = tool.first;
-      for (auto &tool_info : tool.second) {
+      for (const auto &tool_info : tool.second) {
         if (!tool_info.loaded) {
           continue;
         }

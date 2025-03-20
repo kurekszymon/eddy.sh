@@ -87,6 +87,8 @@
         "compare": "cpp",
         "cfenv": "cpp",
         "cinttypes": "cpp",
-        "strstream": "cpp"
+        "strstream": "cpp",
+        "ranges": "cpp",
+        "functional": "cpp"
     },
 }

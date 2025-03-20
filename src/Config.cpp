@@ -43,7 +43,7 @@ void Config::load_yaml_config(const std::string &yaml_file) {
       for (const auto &language : language_entry) {
         std::string language_name = language.first.as<std::string>();
 
-        std::unique_ptr<Language> lang = factory->create(language_name);
+        std::shared_ptr<Language> lang = factory->create(language_name);
 
         auto tools = language.second;
 
@@ -60,8 +60,7 @@ void Config::load_yaml_config(const std::string &yaml_file) {
           }
         }
 
-        languages.push_back(
-            std::move(lang)); // transfer ownership to languages node
+        languages.push_back(lang);
       }
     }
   }
