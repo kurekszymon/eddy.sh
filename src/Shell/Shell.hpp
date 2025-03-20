@@ -12,6 +12,24 @@
 namespace bp = boost::process;
 namespace bfs = boost::filesystem;
 
+namespace {
+std::string parse_home_dir(std::string input_path) {
+  if (input_path.empty() || input_path[0] != '~') {
+    return input_path;
+  }
+
+  const char *env_home = std::getenv("HOME"); // Unix-like systems (Linux/macOS)
+  const char *env_userprofile = std::getenv("USERPROFILE"); // Windows
+
+  bfs::path home_dir = env_home != nullptr ? env_home : env_userprofile;
+
+  // handle home not found - decide for try catch / throwing
+
+  bfs::path result = home_dir / input_path.substr(1);
+  return result.string();
+};
+} // namespace
+
 class Shell {
 public:
   explicit Shell(std::shared_ptr<Logger> logger) : logger_(logger) {}
@@ -26,23 +44,6 @@ public:
 
     pipe_stream.close();
     return output;
-  };
-
-  std::string parse_home_dir(std::string input_path) {
-    if (input_path.empty() || input_path[0] != '~') {
-      return input_path;
-    }
-
-    const char *env_home =
-        std::getenv("HOME"); // Unix-like systems (Linux/macOS)
-    const char *env_userprofile = std::getenv("USERPROFILE"); // Windows
-
-    bfs::path home_dir = env_home ? env_home : env_userprofile;
-
-    // handle home not found - decide for try catch / throwing
-
-    bfs::path result = home_dir / input_path.substr(1);
-    return result.string();
   };
 
   std::string execute_custom_command(CustomScript command) {

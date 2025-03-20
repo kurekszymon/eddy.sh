@@ -10,7 +10,7 @@ using namespace ftxui;
 
 namespace {
 Elements AddFocusBottom(Elements list) {
-  if (list.size() != 0) {
+  if (!list.empty()) {
     // yframe needs to have focus to know what element to display
     // this ensures focus is at the end of the list.
     list.back() = focus(std::move(list.back()));
@@ -30,7 +30,7 @@ public:
   });
 
 private:
-  std::vector<std::string> lines = {};
+  std::vector<std::string> lines;
   std::function<Element()> render_console_output = [this]() {
     std::vector<Element> elements;
 

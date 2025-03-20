@@ -33,11 +33,9 @@ public:
     if (language_factory_map.find(language_name) !=
         language_factory_map.end()) {
       return language_factory_map[language_name]();
-    } else {
-      std::cout << "Language " << language_name << " not supported!"
-                << std::endl;
-      return nullptr;
     }
+    std::cout << "Language " << language_name << " not supported!" << std::endl;
+    return nullptr;
   }
 
   template <typename T> std::shared_ptr<Language> create_language() {
