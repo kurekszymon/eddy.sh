@@ -1,14 +1,8 @@
-#include <iostream>
-#include <yaml-cpp/yaml.h>
-
 #include "Config.hpp"
-#include "Languages/LanguageFactory.hpp"
-
-Config::Config(const std::string &yaml_file) { load_yaml_config(yaml_file); }
 
 void Config::load_yaml_config(const std::string &yaml_file) {
   YAML::Node config = YAML::LoadFile(yaml_file);
-  std::unique_ptr factory = std::make_unique<LanguageFactory>();
+  std::unique_ptr factory = std::make_unique<LanguageFactory>(shell);
   // handle empty yaml?
 
   if (config["repositories"]) {

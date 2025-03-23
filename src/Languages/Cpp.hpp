@@ -4,10 +4,14 @@
 #include "Language.hpp"
 
 class Cpp : public Language {
+public:
+  Cpp(std::shared_ptr<Shell> shell) : Language(shell) {}
+
   const ToolMap &get_tools() const override {
-    static const ToolMap tools = {{"emscripten", {ToolInfo("latest", false)}},
-                                  {"cmake", {ToolInfo("latest", false)}},
-                                  {"ninja", {ToolInfo("3", false)}}};
+    static const ToolMap tools = {
+        {"emscripten", ToolInfo("url", "latest", false)},
+        {"cmake", ToolInfo("ur;", "latest", false)},
+        {"ninja", ToolInfo("url;", "3", false)}};
     return tools;
   }
 
