@@ -1,6 +1,6 @@
 --- 
 repositories:
-  clone_path: '~/repos'
+  clone_path: '~/repos/cloned'
   repos:
   - xlsx-compare: https://github.com/kurekszymon/xlsx-compare
   - roomeo: https://github.com/kurekszymon/roomeo
@@ -18,5 +18,5 @@ languages:
   - python: 
     - pyenv: '3'
   - js:
-    - nvm: v0.40.1
-    - node: 'v8-123'
+    - nvm: v0.40.2
+    - node: 20

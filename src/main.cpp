@@ -14,17 +14,17 @@
 #include "ftxui/component/screen_interactive.hpp" // for Component, ScreenInteractive
 #include "ftxui/dom/elements.hpp" // for text, color, operator|, bgcolor, filler, Element, vbox, size, hbox, separator, flex, window, graph, EQUAL, paragraph, WIDTH, hcenter, Elements, bold, vscroll_indicator, HEIGHT, flexbox, hflow, border, frame, flex_grow, gauge, paragraphAlignCenter, paragraphAlignJustify, paragraphAlignLeft, paragraphAlignRight, dim, spinner, LESS_THAN, center, yframe, GREATER_THAN
 
-#include "Config.hpp"
+#include "Config/Config.hpp"
 #include "Log/Logger.hpp"
 #include "Shell/Shell.hpp"
 
 using namespace ftxui;
 
 int main() {
-  auto logger = std::make_shared<Logger>();
-  auto shell = std::make_unique<Shell>(logger);
-  auto config = std::make_unique<Config>("config.yaml");
   auto screen = ScreenInteractive::Fullscreen();
+  auto logger = std::make_shared<Logger>();
+  auto shell = std::make_shared<Shell>(logger);
+  auto config = std::make_unique<Config>(shell);
 
   int shift = 0;
   int tab_index = 0;
@@ -52,7 +52,7 @@ int main() {
     const CustomScript &selected_script =
         custom_scripts_config.at(cs_selected_index);
 
-    shell->execute_custom_command(selected_script);
+    shell->custom_command(selected_script);
   };
 
   auto cs_menu = Menu(&cs_entries, &cs_selected_index, cs_option);
@@ -82,7 +82,7 @@ int main() {
     const std::string clone_to =
         repo_config.clone_path + '/' + selected_repo.name;
 
-    shell->execute_git_clone(selected_repo.url, clone_to);
+    shell->git_clone(selected_repo.url, clone_to);
   };
 
   auto repos_menu = Menu(&repositories_entries, &repositories_selected_index,
@@ -100,29 +100,52 @@ int main() {
   // ---------------------------------------------------------------------------
 
   auto languages_config = config->languages;
-
   for (const auto &language : languages_config) {
     auto tools = language->get_loaded_tools();
+    if (tools.empty()) {
+      continue;
+    }
+    struct SharedState {
+      // needed to properly handle lifetimes
+      std::vector<std::string> entries;
+      std::vector<LoadedTool> tool_data;
+      int selected = 0;
+    };
 
-    std::string console_output;
+    auto state = std::make_shared<SharedState>();
+
     for (const auto &tool : tools) {
-      console_output.append(tool.first + " ");
+      state->entries.push_back(tool.first);
+      state->tool_data.push_back(tool);
     }
 
-    auto render_console_output = [console_output]() {
-      return hbox({text("Lang console output: "), text(console_output)}) |
-             border | flex;
-    };
-    auto lang_renderer = Renderer([render_console_output] {
-      return vbox({render_console_output()}) | flex;
+    auto menu = Menu(&state->entries, &state->selected);
+
+    auto menu_with_event =
+        CatchEvent(menu, [state, logger](const Event &event) {
+          if (event == Event::Return) {
+            if (state->selected >= 0 &&
+                state->selected < static_cast<int>(state->entries.size())) {
+
+              const auto &selected_tool = state->tool_data[state->selected];
+              logger->update("Selected tool: " + selected_tool.first);
+
+              const auto &tool_info = selected_tool.second;
+
+              tool_info.install();
+            }
+
+            return true;
+          }
+          return false;
+        });
+
+    Component renderer = Renderer(menu_with_event, [menu_with_event, state] {
+      return menu_with_event->Render() | yframe | yflex | border;
     });
 
-    auto lang_container = Container::Vertical({lang_renderer});
-
-    if (!tools.empty()) {
-      tab_entries.push_back(language->get_name());
-      tab_content->Add(lang_container);
-    }
+    tab_entries.push_back(language->get_name());
+    tab_content->Add(renderer);
   }
 
   // ---------------------------------------------------------------------------
