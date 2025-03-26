@@ -7,55 +7,59 @@ void Config::load_yaml_config(const std::string &yaml_file) {
 
   if (config["repositories"]) {
     auto repos_node = config["repositories"];
+
     if (repos_node["clone_path"]) {
       repositories.clone_path = repos_node["clone_path"].as<std::string>();
     }
 
-    for (const auto &repo : repos_node["repos"]) {
-      Repository r;
-      auto _repo = repo.begin();
-      r.name = _repo->first.as<std::string>();
-      r.url = _repo->second.as<std::string>();
-      repositories.vector.push_back(r);
+    for (const auto &yaml_repo : repos_node["repos"]) {
+      auto node = yaml_repo.begin();
+
+      Repository repo;
+      repo.name = node->first.as<std::string>();
+      repo.url = node->second.as<std::string>();
+      repositories.vector.push_back(repo);
     }
   }
   if (config["custom_scripts"]) {
     auto custom_scripts_node = config["custom_scripts"];
 
-    for (const auto &script : custom_scripts_node) {
-      CustomScript s;
-      auto _script = script.begin();
-      s.name = _script->first.as<std::string>();
-      s.cmd = _script->second.as<std::string>();
-      custom_scripts.push_back(s);
+    for (const auto &yaml_script : custom_scripts_node) {
+      auto node = yaml_script.begin();
+
+      CustomScript script;
+      script.name = node->first.as<std::string>();
+      script.cmd = node->second.as<std::string>();
+      custom_scripts.push_back(script);
     }
   }
   if (config["languages"]) {
     auto languages_node = config["languages"];
 
-    for (const auto &language_entry : languages_node) {
-      for (const auto &language : language_entry) {
-        std::string language_name = language.first.as<std::string>();
+    for (const auto &yaml_language : languages_node) {
+      auto node = yaml_language.begin();
 
-        std::shared_ptr<Language> lang = factory->create(language_name);
+      std::string language_name = node->first.as<std::string>();
+      std::shared_ptr<Language> lang = factory->create(language_name);
 
-        auto tools = language.second;
+      auto tools = node->second;
 
-        if (tools.size() == 0) {
-          continue;
-        }
-
-        for (const auto &tool : tools) {
-          for (const auto &tool_entry : tool) {
-            std::string name = tool_entry.first.as<std::string>();
-            std::string version = tool_entry.second.as<std::string>();
-
-            lang->load_tool(name, version);
-          }
-        }
-
-        languages.push_back(lang);
+      if (tools.size() == 0) {
+        continue;
       }
+
+      for (const auto &yaml_tool : tools) {
+        auto node = yaml_tool.begin();
+
+        std::string name = node->first.as<std::string>();
+        std::string version = node->second.as<std::string>();
+
+        lang->load_tool(name, version);
+        // move creating language factory to main maybe?
+        // this way I can skip dependency injection to config
+      }
+
+      languages.push_back(lang);
     }
   }
 }

@@ -17,6 +17,7 @@
 
 namespace bp = boost::process;
 namespace bfs = boost::filesystem;
+namespace fs = std::filesystem;
 
 namespace {
 std::string parse_home_dir(std::string input_path) {
@@ -63,7 +64,6 @@ public:
   };
 
   void custom_command(CustomScript command) {
-
     bp::ipstream std_out;
     bp::ipstream std_err;
 
@@ -74,7 +74,6 @@ public:
 
     pipe_output(std_out, command.name);
     pipe_output(std_err, command.name);
-
     c.wait();
 
     if (c.exit_code() > 0) {
@@ -83,6 +82,36 @@ public:
     }
   }
 
+  void run_script_file(const std::string &path) {
+    bp::ipstream std_out;
+
+    std::vector<std::string> args = {"-c", parse_home_dir(path)};
+
+    bp::child c(bp::search_path("sh"), args, bp::std_out > std_out);
+
+    int bash_exit = c.exit_code();
+
+    pipe_output(std_out, path);
+
+    c.wait();
+
+    if (c.exit_code() > 0) {
+      std::string code = std::to_string(c.exit_code());
+      logger->update(path + " exited with code: " + code);
+    }
+  }
+
+  void make_executable(const std::string &filepath) {
+    auto _filepath = parse_home_dir(filepath);
+    logger->update("chmod +x " + _filepath);
+
+    auto perms =
+        fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec;
+
+    fs::permissions(_filepath, perms, fs::perm_options::add);
+
+    logger->update("File made executable: " + _filepath);
+  };
   void git_clone(const std::string &repo_url, const std::string &clone_dir) {
     // TODO: handle git clone async command in logger
     bp::ipstream std_err;
@@ -93,9 +122,8 @@ public:
     bp::child c(bp::search_path("git"), args,
                 bp::std_err > std_err); // git clone writes to std_err.
 
-    pipe_output(std_err, "git clone");
-
     c.wait();
+    pipe_output(std_err, "git clone");
 
     if (c.exit_code() > 0) {
       std::string code = std::to_string(c.exit_code());
@@ -105,7 +133,10 @@ public:
     }
   };
 
-  void curl(const std::string url, const std::string name) {
+  enum curl_type { download };
+
+  std::string curl(const std::string url, const std::string name,
+                   curl_type type = curl_type::download) {
     const std::string eddy_path = check_eddy_path();
     const std::string output_dir = eddy_path + "/" + name + ".sh";
     const std::vector<std::string> args = {
@@ -118,15 +149,17 @@ public:
     bp::child c(bp::search_path("curl"), args, bp::std_out > std_out,
                 bp::std_err > std_err);
 
+    c.wait();
     pipe_output(std_out, "curl");
     pipe_output(std_err, "curl");
-    c.wait();
 
     if (c.exit_code() > 0) {
       logger->update("curl failed with code " + std::to_string(c.exit_code()));
     } else {
       logger->update("download complete.", "curl: ");
     }
+
+    return output_dir;
   }
 
   void echo(const std::string msg) { logger->update(msg); }

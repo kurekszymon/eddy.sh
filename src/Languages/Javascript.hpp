@@ -12,17 +12,20 @@ public:
         {"nvm",
          ToolInfo("https://raw.githubusercontent.com/nvm-sh/nvm/{version}/"
                   "install.sh",
-                  "latest", false, install_nvm)},
-    };
+                  "latest", false,
+                  std::bind(&Javascript::install_nvm, this,
+                            std::placeholders::_1))}};
     return tools;
   }
 
+  void install_nvm(const std::string &url) const {
+    shell->echo("Downloading nvm...");
+
+    std::string output_dir = shell->curl(url, "nvm");
+    shell->make_executable(output_dir);
+    shell->run_script_file(output_dir);
+  }
   std::string get_name() const override { return "Javascript"; }
-  // learn how to replace this lambda with something else.
-  std::function<int()> install_nvm = [this]() {
-    this->shell_->echo("hello from install nvm");
-    return 1;
-  };
 
 private:
   const ToolMap tools;
