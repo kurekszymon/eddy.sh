@@ -132,7 +132,7 @@ int main() {
 
               const auto &tool_info = selected_tool.second;
 
-              tool_info.install();
+              tool_info.install(tool_info.url);
             }
 
             return true;

@@ -15,12 +15,14 @@ struct ToolInfo {
   bool loaded;
   std::string url;
   std::string version;
-  std::function<int()> install;
+  std::function<void(const std::string &url)> install;
   const std::string placeholder = "{version}";
 
   ToolInfo(
       const std::string &url, const std::string &version, bool loaded,
-      std::function<int()> install = []() { return 0; })
+      std::function<void(const std::string &url)> install =
+          [](const std::string &url) { return 0; })
+
       : url(url), version(version), loaded(loaded), install(install) {}
 
   void set_version(const std::string &ver) {
@@ -47,7 +49,7 @@ public:
   virtual const ToolMap &get_tools() const = 0;
   virtual std::string get_name() const = 0;
 
-  Language(std::shared_ptr<Shell> shell) : shell_(shell) {}
+  Language(std::shared_ptr<Shell> shell_) : shell(shell_) {}
 
   virtual void load_tool(const std::string &name, const std::string &version) {
     const ToolMap &tools = get_tools();
@@ -72,7 +74,7 @@ public:
 
 protected:
   std::vector<LoadedTool> loaded_tools;
-  std::shared_ptr<Shell> shell_;
+  std::shared_ptr<Shell> shell;
 };
 
 #endif // LANGUAGE_H
