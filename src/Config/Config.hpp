@@ -12,7 +12,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "../Languages/LanguageFactory.hpp"
-#include "../Shell/Shell.hpp"
+#include "../ShellWrapper/ShellWrapper.hpp"
 #include "../Yaml/CustomScript.hpp"
 #include "../Yaml/Repository.hpp"
 
@@ -23,7 +23,7 @@ enum ConfigItem {
 
 class Config {
 public:
-  explicit Config(std::shared_ptr<Shell> shell) : shell(shell) {
+  explicit Config(std::shared_ptr<ShellWrapper> shell) : shell(shell) {
     load_yaml_config("config.yaml");
   };
 
@@ -33,7 +33,7 @@ public:
 
 private:
   void load_yaml_config(const std::string &yaml_file);
-  std::shared_ptr<Shell> shell;
+  std::shared_ptr<ShellWrapper> shell;
 };
 
 #endif // CONFIG_H

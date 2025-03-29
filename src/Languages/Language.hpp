@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../Shell/Shell.hpp"
+#include "../ShellWrapper/ShellWrapper.hpp"
 
 struct ToolInfo {
   // probably need reworking a bit
@@ -49,7 +49,7 @@ public:
   virtual const ToolMap &get_tools() const = 0;
   virtual std::string get_name() const = 0;
 
-  Language(std::shared_ptr<Shell> shell_) : shell(shell_) {}
+  Language(std::shared_ptr<ShellWrapper> shell_) : shell(shell_) {}
 
   virtual void load_tool(const std::string &name, const std::string &version) {
     const ToolMap &tools = get_tools();
@@ -74,7 +74,7 @@ public:
 
 protected:
   std::vector<LoadedTool> loaded_tools;
-  std::shared_ptr<Shell> shell;
+  std::shared_ptr<ShellWrapper> shell;
 };
 
 #endif // LANGUAGE_H
