@@ -14,17 +14,16 @@
 #include "ftxui/component/screen_interactive.hpp" // for Component, ScreenInteractive
 #include "ftxui/dom/elements.hpp" // for text, color, operator|, bgcolor, filler, Element, vbox, size, hbox, separator, flex, window, graph, EQUAL, paragraph, WIDTH, hcenter, Elements, bold, vscroll_indicator, HEIGHT, flexbox, hflow, border, frame, flex_grow, gauge, paragraphAlignCenter, paragraphAlignJustify, paragraphAlignLeft, paragraphAlignRight, dim, spinner, LESS_THAN, center, yframe, GREATER_THAN
 
-#include "Config.hpp"
-#include "Log/Logger.hpp"
-#include "Shell/Shell.hpp"
+#include "Config/Config.hpp"
+#include "ShellWrapper/ShellWrapper.hpp"
 
 using namespace ftxui;
 
 int main() {
-  auto logger = std::make_shared<Logger>();
-  auto shell = std::make_unique<Shell>(logger);
-  auto config = std::make_unique<Config>("config.yaml");
   auto screen = ScreenInteractive::Fullscreen();
+  auto command_handler = std::make_shared<CommandHandler>(screen);
+  auto shell = std::make_shared<ShellWrapper>(command_handler);
+  auto config = std::make_unique<Config>(shell);
 
   int shift = 0;
   int tab_index = 0;
@@ -52,7 +51,7 @@ int main() {
     const CustomScript &selected_script =
         custom_scripts_config.at(cs_selected_index);
 
-    shell->execute_custom_command(selected_script);
+    shell->run_custom_command(selected_script);
   };
 
   auto cs_menu = Menu(&cs_entries, &cs_selected_index, cs_option);
@@ -82,7 +81,7 @@ int main() {
     const std::string clone_to =
         repo_config.clone_path + '/' + selected_repo.name;
 
-    shell->execute_git_clone(selected_repo.url, clone_to);
+    shell->git_clone(selected_repo.url, clone_to);
   };
 
   auto repos_menu = Menu(&repositories_entries, &repositories_selected_index,
@@ -100,29 +99,50 @@ int main() {
   // ---------------------------------------------------------------------------
 
   auto languages_config = config->languages;
-
   for (const auto &language : languages_config) {
     auto tools = language->get_loaded_tools();
+    if (tools.empty()) {
+      continue;
+    }
+    struct SharedState {
+      // needed to properly handle lifetimes
+      std::vector<std::string> entries;
+      std::vector<LoadedTool> tool_data;
+      int selected = 0;
+    };
 
-    std::string console_output;
+    auto state = std::make_shared<SharedState>();
+
     for (const auto &tool : tools) {
-      console_output.append(tool.first + " ");
+      state->entries.push_back(tool.first);
+      state->tool_data.push_back(tool);
     }
 
-    auto render_console_output = [console_output]() {
-      return hbox({text("Lang console output: "), text(console_output)}) |
-             border | flex;
-    };
-    auto lang_renderer = Renderer([render_console_output] {
-      return vbox({render_console_output()}) | flex;
+    auto menu = Menu(&state->entries, &state->selected);
+
+    auto menu_with_event = CatchEvent(menu, [state](const Event &event) {
+      if (event == Event::Return) {
+        if (state->selected >= 0 &&
+            state->selected < static_cast<int>(state->entries.size())) {
+
+          const auto &selected_tool = state->tool_data[state->selected];
+
+          const auto &tool_info = selected_tool.second;
+
+          tool_info.install(tool_info.url);
+        }
+
+        return true;
+      }
+      return false;
     });
 
-    auto lang_container = Container::Vertical({lang_renderer});
+    Component renderer = Renderer(menu_with_event, [menu_with_event, state] {
+      return menu_with_event->Render() | yframe | yflex | border;
+    });
 
-    if (!tools.empty()) {
-      tab_entries.push_back(language->get_name());
-      tab_content->Add(lang_container);
-    }
+    tab_entries.push_back(language->get_name());
+    tab_content->Add(renderer);
   }
 
   // ---------------------------------------------------------------------------
@@ -135,11 +155,14 @@ int main() {
   auto exit_button =
       Button("Exit", [&] { screen.Exit(); }, ButtonOption::Animated());
 
-  auto logger_renderer = logger->renderer;
-
   auto tab_selection_container = Container::Horizontal({
       tab_selection,
       exit_button,
+  });
+
+  auto console_renderer = ftxui::Renderer([&command_handler]() {
+    return ftxui::vbox({command_handler->render_console_output()}) |
+           ftxui::yframe | ftxui::yflex | ftxui::border;
   });
 
   auto main_container =
@@ -159,27 +182,10 @@ int main() {
   });
 
   int paragraph_renderer_split_position = Terminal::Size().dimx / 1.5;
-  auto group_renderer = ResizableSplitLeft(main_renderer, logger_renderer,
+  auto group_renderer = ResizableSplitLeft(main_renderer, console_renderer,
                                            &paragraph_renderer_split_position);
 
-  std::atomic<bool> refresh_ui_continue = true;
-  std::thread refresh_ui([&] {
-    while (refresh_ui_continue) {
-      using namespace std::chrono_literals;
-      std::this_thread::sleep_for(0.05s);
-      // The |shift| variable belong to the main thread. `screen.Post(task)`
-      // will execute the update on the thread where |screen| lives (e.g. the
-      // main thread). Using `screen.Post(task)` is threadsafe.
-      screen.Post([&] { shift++; });
-      // After updating the state, request a new frame to be drawn. This is done
-      // by simulating a new "custom" event to be handled.
-      screen.Post(Event::Custom);
-    }
-  });
-
   screen.Loop(group_renderer);
-  refresh_ui_continue = false;
-  refresh_ui.join();
 
   return 0;
 }

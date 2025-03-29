@@ -1,6 +1,6 @@
 --- 
 repositories:
-  clone_path: '~/repos'
+  clone_path: '~/repos/cloned'
   repos:
   - xlsx-compare: https://github.com/kurekszymon/xlsx-compare
   - roomeo: https://github.com/kurekszymon/roomeo
@@ -13,10 +13,9 @@ custom_scripts:
 languages: 
   - cpp: 
     - emscripten: https://github.com/emscripten-core/emsdk.git
-    - cmake: 'cmake-123'
+    - cmake: '3.31.6'
     - ninja: 'ninja-123'
   - python: 
     - pyenv: '3'
   - js:
-    - nvm: v0.40.1
-    - node: 'v8-123'
+    - nvm: 0.40.2

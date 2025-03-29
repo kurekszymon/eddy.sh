@@ -1,8 +1,9 @@
 #ifndef LANGUAGEFACTORY_H
 #define LANGUAGEFACTORY_H
-#include "memory"
 #include <functional>
+#include <memory>
 
+#include "../ShellWrapper/ShellWrapper.hpp"
 #include "Cpp.hpp"
 #include "Javascript.hpp"
 #include "Language.hpp"
@@ -17,7 +18,7 @@
  */
 class LanguageFactory {
 public:
-  LanguageFactory() {
+  LanguageFactory(std::shared_ptr<ShellWrapper> shell) : shell_(shell) {
     language_factory_map["python"] = [&]() {
       return LanguageFactory::create_language<Python>();
     };
@@ -32,16 +33,20 @@ public:
   std::shared_ptr<Language> create(const std::string &language_name) {
     if (language_factory_map.find(language_name) !=
         language_factory_map.end()) {
+
       return language_factory_map[language_name]();
     }
-    std::cout << "Language " << language_name << " not supported!" << std::endl;
+    std::cout << "Language " << language_name << " is not supported!"
+              << std::endl;
     return nullptr;
   }
 
   template <typename T> std::shared_ptr<Language> create_language() {
-    return std::make_unique<T>(); // Create the specific language instance
+    return std::make_unique<T>(shell_); // Create the specific language instance
   };
-  // Map that associates language names with their creation function
+
+private:
+  std::shared_ptr<ShellWrapper> shell_;
   std::unordered_map<std::string, std::function<std::shared_ptr<Language>()>>
       language_factory_map;
 };

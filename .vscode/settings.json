@@ -89,6 +89,7 @@
         "cinttypes": "cpp",
         "strstream": "cpp",
         "ranges": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "span": "cpp"
     },
 }
