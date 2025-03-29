@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-#include "../Shell/Shell.hpp"
+#include "../ShellWrapper/ShellWrapper.hpp"
 #include "Cpp.hpp"
 #include "Javascript.hpp"
 #include "Language.hpp"
@@ -18,7 +18,7 @@
  */
 class LanguageFactory {
 public:
-  LanguageFactory(std::shared_ptr<Shell> shell) : shell_(shell) {
+  LanguageFactory(std::shared_ptr<ShellWrapper> shell) : shell_(shell) {
     language_factory_map["python"] = [&]() {
       return LanguageFactory::create_language<Python>();
     };
@@ -46,7 +46,7 @@ public:
   };
 
 private:
-  std::shared_ptr<Shell> shell_;
+  std::shared_ptr<ShellWrapper> shell_;
   std::unordered_map<std::string, std::function<std::shared_ptr<Language>()>>
       language_factory_map;
 };

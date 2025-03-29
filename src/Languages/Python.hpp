@@ -5,7 +5,7 @@
 
 class Python : public Language {
 public:
-  Python(std::shared_ptr<Shell> shell) : Language(shell) {}
+  Python(std::shared_ptr<ShellWrapper> shell) : Language(shell) {}
 
   const ToolMap &get_tools() const override {
     static const ToolMap tools = {{"pyenv", ToolInfo("ur;", "latest", false)},

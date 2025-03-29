@@ -15,15 +15,14 @@
 #include "ftxui/dom/elements.hpp" // for text, color, operator|, bgcolor, filler, Element, vbox, size, hbox, separator, flex, window, graph, EQUAL, paragraph, WIDTH, hcenter, Elements, bold, vscroll_indicator, HEIGHT, flexbox, hflow, border, frame, flex_grow, gauge, paragraphAlignCenter, paragraphAlignJustify, paragraphAlignLeft, paragraphAlignRight, dim, spinner, LESS_THAN, center, yframe, GREATER_THAN
 
 #include "Config/Config.hpp"
-#include "Log/Logger.hpp"
-#include "Shell/Shell.hpp"
+#include "ShellWrapper/ShellWrapper.hpp"
 
 using namespace ftxui;
 
 int main() {
   auto screen = ScreenInteractive::Fullscreen();
-  auto logger = std::make_shared<Logger>();
-  auto shell = std::make_shared<Shell>(logger);
+  auto command_handler = std::make_shared<CommandHandler>(screen);
+  auto shell = std::make_shared<ShellWrapper>(command_handler);
   auto config = std::make_unique<Config>(shell);
 
   int shift = 0;
@@ -52,7 +51,7 @@ int main() {
     const CustomScript &selected_script =
         custom_scripts_config.at(cs_selected_index);
 
-    shell->custom_command(selected_script);
+    shell->run_custom_command(selected_script);
   };
 
   auto cs_menu = Menu(&cs_entries, &cs_selected_index, cs_option);
@@ -121,24 +120,22 @@ int main() {
 
     auto menu = Menu(&state->entries, &state->selected);
 
-    auto menu_with_event =
-        CatchEvent(menu, [state, logger](const Event &event) {
-          if (event == Event::Return) {
-            if (state->selected >= 0 &&
-                state->selected < static_cast<int>(state->entries.size())) {
+    auto menu_with_event = CatchEvent(menu, [state](const Event &event) {
+      if (event == Event::Return) {
+        if (state->selected >= 0 &&
+            state->selected < static_cast<int>(state->entries.size())) {
 
-              const auto &selected_tool = state->tool_data[state->selected];
-              logger->update("Selected tool: " + selected_tool.first);
+          const auto &selected_tool = state->tool_data[state->selected];
 
-              const auto &tool_info = selected_tool.second;
+          const auto &tool_info = selected_tool.second;
 
-              tool_info.install(tool_info.url);
-            }
+          tool_info.install(tool_info.url);
+        }
 
-            return true;
-          }
-          return false;
-        });
+        return true;
+      }
+      return false;
+    });
 
     Component renderer = Renderer(menu_with_event, [menu_with_event, state] {
       return menu_with_event->Render() | yframe | yflex | border;
@@ -158,11 +155,14 @@ int main() {
   auto exit_button =
       Button("Exit", [&] { screen.Exit(); }, ButtonOption::Animated());
 
-  auto logger_renderer = logger->renderer;
-
   auto tab_selection_container = Container::Horizontal({
       tab_selection,
       exit_button,
+  });
+
+  auto console_renderer = ftxui::Renderer([&command_handler]() {
+    return ftxui::vbox({command_handler->render_console_output()}) |
+           ftxui::yframe | ftxui::yflex | ftxui::border;
   });
 
   auto main_container =
@@ -182,27 +182,10 @@ int main() {
   });
 
   int paragraph_renderer_split_position = Terminal::Size().dimx / 1.5;
-  auto group_renderer = ResizableSplitLeft(main_renderer, logger_renderer,
+  auto group_renderer = ResizableSplitLeft(main_renderer, console_renderer,
                                            &paragraph_renderer_split_position);
 
-  std::atomic<bool> refresh_ui_continue = true;
-  std::thread refresh_ui([&] {
-    while (refresh_ui_continue) {
-      using namespace std::chrono_literals;
-      std::this_thread::sleep_for(0.05s);
-      // The |shift| variable belong to the main thread. `screen.Post(task)`
-      // will execute the update on the thread where |screen| lives (e.g. the
-      // main thread). Using `screen.Post(task)` is threadsafe.
-      screen.Post([&] { shift++; });
-      // After updating the state, request a new frame to be drawn. This is done
-      // by simulating a new "custom" event to be handled.
-      screen.Post(Event::Custom);
-    }
-  });
-
   screen.Loop(group_renderer);
-  refresh_ui_continue = false;
-  refresh_ui.join();
 
   return 0;
 }
