@@ -16,6 +16,7 @@
             "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
+                "CMAKE_POLICY_DEFAULT_CMP0079": "NEW",
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true,
                 "CMAKE_CXX_STANDARD": "23",
