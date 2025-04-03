@@ -37,7 +37,7 @@ std::string get_cmake_archive_type() {
 #ifdef _WIN32
   extension = ".zip";
 #else
-  extension = ".extract.gz";
+  extension = ".tar.gz";
 #endif
 
   return extension;
