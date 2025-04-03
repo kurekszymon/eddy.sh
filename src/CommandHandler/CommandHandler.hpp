@@ -16,9 +16,13 @@ class CommandHandler {
 private:
   std::vector<std::string> lines;
   std::mutex lines_mutex;
-  std::mutex command_mutex;
   std::atomic<bool> command_running{false};
   ftxui::ScreenInteractive &screen;
+  std::queue<std::pair<std::string, std::string>> command_queue;
+  std::mutex queue_mutex;
+  std::condition_variable cv;
+  std::thread worker_thread;
+  std::atomic<bool> shutdown{false};
 
   void add_line(const std::string &line) {
     std::lock_guard<std::mutex> lock(lines_mutex);
@@ -26,7 +30,17 @@ private:
   }
 
 public:
-  CommandHandler(ftxui::ScreenInteractive &scr) : screen(scr) {}
+  CommandHandler(ftxui::ScreenInteractive &scr) : screen(scr) {
+    worker_thread = std::thread(&CommandHandler::process_command_queue, this);
+  }
+
+  ~CommandHandler() {
+    shutdown = true;
+    cv.notify_all();
+    if (worker_thread.joinable()) {
+      worker_thread.join();
+    }
+  }
 
   ftxui::Element render_console_output() {
     std::lock_guard<std::mutex> lock(lines_mutex);
@@ -54,44 +68,61 @@ public:
   void
   run_command(const std::string &command,
               const std::string &working_dir = bfs::current_path().string()) {
-
-    while (command_running) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-    command_running = true;
-    std::thread command_thread([this, command, working_dir]() {
-      bp::ipstream std_out;
-      bp::ipstream std_err;
-      bp::child c(command, bp::start_dir(working_dir), bp::std_out > std_out,
-                  bp::std_err > std_err);
-
-      std::string line;
-      while (std::getline(std_out, line)) {
-        // Add line and request screen update
-        screen.Post([this, line]() {
-          add_line(line);
-          screen.Post(ftxui::Event::Custom);
-        });
-      }
-
-      while (std::getline(std_err, line)) {
-        // Add line and request screen update
-        screen.Post([this, line]() {
-          add_line(line);
-          screen.Post(ftxui::Event::Custom);
-        });
-      }
-
-      // Wait for process to complete
-      c.wait();
-      screen.Post(ftxui::Event::Custom); // post custom event to refresh ui
-      // after command finishes
-      command_running = false;
-    });
-
-    // Detach the thread so it can run independently -> dont block the ui
-    command_thread.detach();
+    std::lock_guard<std::mutex> lock(queue_mutex);
+    command_queue.push({command, working_dir});
+    cv.notify_one();
   }
 
   bool is_command_running() const { return command_running; }
+
+private:
+  // Worker thread function that processes the command queue sequentially
+  void process_command_queue() {
+    while (!shutdown) {
+      std::unique_lock<std::mutex> lock(queue_mutex);
+      cv.wait(lock, [this]() { return !command_queue.empty() || shutdown; });
+
+      if (shutdown)
+        break;
+
+      if (!command_queue.empty()) {
+        auto cmd_pair = command_queue.front();
+        command_queue.pop();
+        lock.unlock();
+
+        execute_command(cmd_pair.first, cmd_pair.second);
+      }
+    }
+  }
+
+  void execute_command(const std::string &command,
+                       const std::string &working_dir) {
+    command_running = true;
+    screen.Post(ftxui::Event::Custom);
+
+    bp::ipstream std_out;
+    bp::ipstream std_err;
+    bp::child c(command, bp::start_dir(working_dir), bp::std_out > std_out,
+                bp::std_err > std_err);
+
+    std::string line;
+    while (std::getline(std_out, line)) {
+      screen.Post([this, line]() {
+        add_line(line);
+        screen.Post(ftxui::Event::Custom);
+      });
+    }
+
+    while (std::getline(std_err, line)) {
+      screen.Post([this, line]() {
+        add_line(line);
+        screen.Post(ftxui::Event::Custom);
+      });
+    }
+
+    c.wait();
+
+    command_running = false;
+    screen.Post(ftxui::Event::Custom);
+  }
 };

@@ -22,6 +22,10 @@ namespace bp = boost::process;
 namespace bfs = boost::filesystem;
 namespace fs = std::filesystem;
 
+// refactor the returns to support exit codes
+// std::pair<int, std::map<T>> probably?
+
+// use boost::join only in run command
 namespace {
 std::string parse_home_dir(const std::string input_path) {
   if (input_path.empty() || input_path[0] != '~') {
@@ -42,6 +46,8 @@ std::string parse_home_dir(const std::string input_path) {
 
 std::string check_eddy_path() {
   std::string eddy_path = parse_home_dir(EDDY_PATH);
+
+  // can cause issue, cause it's not scheduled.
 
   if (!fs::exists(eddy_path)) {
     fs::create_directory(eddy_path);
@@ -115,96 +121,82 @@ public:
     const std::string filepath = file_dir + "/" + filename;
     this->echo("$ chmod +x " + filepath);
 
-    auto perms =
-        fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec;
+    // causing issues because not scheduled
+    std::vector<std::string> args = {"chmod", "+x", filename};
+    std::string command = boost::algorithm::join(args, " ");
 
-    fs::permissions(filepath, perms, fs::perm_options::add);
+    command_handler->run_command(command, file_dir);
 
     this->echo("$ File made executable: " + filepath);
   };
 
-  void run_script_file(const std::string &file_dir,
-                       const std::string &filename) {
-    std::vector<std::string> args = {"sh", "-c", "./" + filename};
-    std::string command = boost::algorithm::join(args, " ");
+  template <typename... Args>
+  void run_script_file(const std::string &file_dir, const std::string &filename,
+                       Args... args) {
+    std::vector<std::string> arguments = {"sh", "-c",
+                                          "\""
+                                          "./" +
+                                              filename};
+
+    (arguments.push_back(args), ...);
+    arguments.push_back("\"");
+
+    std::string command = boost::algorithm::join(arguments, " ");
 
     this->command_handler->run_command(command, file_dir);
   }
 
-  std::string tar(const std::string &path, const std::string name,
-                  ArchiveType type) {
-    std::string extract_path = check_eddy_path();
-    std::string archive_path = path + "/" + name;
-// Determine extraction command based on OS and archive type
-#ifdef _WIN32
-    if (type == ArchiveType::ZIP) {
-      std::vector<std::string> args = {
-          "powershell", "Expand-Archive",   "-Path",
-          archive_path, "-DestinationPath", extract_path};
-      std::string command = boost::algorithm::join(args, " ");
-
-      this->command_handler->run_command(command);
-    } else {
-      this->echo("Only ZIP files supported on Windows");
-    }
-#else
-    std::vector<std::string> args = {"tar", "-xzf", archive_path, "-C",
-                                     extract_path};
-
-    // TAR and TAR.GZ extraction
-    if (type != ArchiveType::TAR_GZ || type != ArchiveType::TAR) {
-      this->echo("Unsupported archive type on Unix-like system");
-    }
+  void run_make(const std::string &dir) {
+    std::vector<std::string> args = {"sh", "-c", "make"};
     std::string command = boost::algorithm::join(args, " ");
 
-    this->command_handler->run_command(command);
-#endif
+    this->command_handler->run_command(command, dir);
+  }
+
+  std::string extract(const std::string &path, const std::string name,
+                      ArchiveType type) {
+    std::string extract_path = check_eddy_path();
+    std::string archive_path = path + "/" + name;
+
+    if (type == ArchiveType::TAR_GZ) {
+      std::vector<std::string> args = {"tar", "-xzf", archive_path, "-C",
+                                       extract_path};
+      std::string command = boost::algorithm::join(args, " ");
+      this->command_handler->run_command(command);
+    } else if (type == ArchiveType::TAR) {
+      std::vector<std::string> args = {"tar", "-xf", archive_path, "-C",
+                                       extract_path};
+      std::string command = boost::algorithm::join(args, " ");
+      this->command_handler->run_command(command);
+    } else if (type == ArchiveType::ZIP) {
+      // Add ZIP support for Unix-like systems
+      std::vector<std::string> args = {"unzip", "-o", archive_path, "-d",
+                                       extract_path};
+      std::string command = boost::algorithm::join(args, " ");
+      this->command_handler->run_command(command);
+    } else {
+      this->echo("Unsupported archive type");
+    }
 
     return get_extracted_filename(name);
   }
-
-  void bootstrap_cmake(const std::string &cmake_source_path) {
-    const std::string cmake_path = check_eddy_path() + "/" + cmake_source_path;
-    const std::vector<std::string> args = {"sh", "-c", "./bootstrap"};
-    std::string command = boost::algorithm::join(args, " ");
-    this->command_handler->run_command(command, cmake_path);
-  }
-
   void git_clone(const std::string &repo_url, const std::string &clone_dir) {
-    std::vector<std::string> args = {"git", "clone", repo_url};
+    std::vector<std::string> args = {"git", "clone", repo_url,
+                                     parse_home_dir(clone_dir)};
     std::string command = boost::algorithm::join(args, " ");
 
-    this->echo("$: Starting cloning " + repo_url + " to " + clone_dir);
+    this->command_handler->run_command(command);
+  };
 
-    this->command_handler->run_command(command, parse_home_dir(clone_dir));
+  void git_pull(const std::string &dir) {
+    std::vector<std::string> args = {"git", "pull"};
+    std::string command = boost::algorithm::join(args, " ");
+
+    this->echo("$: git pull in: " + dir);
+
+    this->command_handler->run_command(command, parse_home_dir(dir));
   };
 }
 
-//   std::string tar(const std::string &path, ArchiveType type) {
-//     const std::string eddy_path = check_eddy_path();
-//     // std::string unpacked_filename = extractor.unpack(path,
-//     eddy_path, type);
-
-//     // return unpacked_filename;
-//     return "";
-//   }
-
-//   void bootstrap_cmake(const std::string &cmake_source_path) {
-//     const std::string cmake_path = check_eddy_path() + "/" +
-//     cmake_source_path;
-
-//     bp::ipstream std_out;
-//     bp::ipstream std_err;
-//     bp::child c("sh -c \"echo 12323 && pwd && echo hello\"",
-//                 bp::start_dir(cmake_path), bp::std_out > std_out,
-//                 bp::std_err > std_err);
-//     c.wait();
-
-//     // pipe_output(std_out, logger, "bootstrap_cmake:");
-//     // pipe_output(std_err, logger, "bootstrap_cmake:");
-//   }
-
-//   void echo(const std::string msg) { logger->update(msg); }
-// }
 ;
 #endif // SHELL_WRAPPER_H
