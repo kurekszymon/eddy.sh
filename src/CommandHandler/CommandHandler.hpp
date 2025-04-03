@@ -82,8 +82,9 @@ private:
       std::unique_lock<std::mutex> lock(queue_mutex);
       cv.wait(lock, [this]() { return !command_queue.empty() || shutdown; });
 
-      if (shutdown)
+      if (shutdown) {
         break;
+      }
 
       if (!command_queue.empty()) {
         auto cmd_pair = command_queue.front();

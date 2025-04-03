@@ -17,6 +17,7 @@ public:
   }
 
   void install_nvm(const std::string &url) const {
+    // Add windows support
     shell->echo("Downloading nvm...");
 
     auto [output_dir, filename] = shell->curl(url, "nvm");
