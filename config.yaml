@@ -12,9 +12,9 @@ custom_scripts:
   - mkdir: mkdir ~/hello_crpp
 languages: 
   - cpp: 
-    - emscripten: https://github.com/emscripten-core/emsdk.git
-    - cmake: '3.31.6'
-    - ninja: 'ninja-123'
+    - emscripten: latest
+    - cmake: 3.31.6
+    - ninja: 1.12.1
   - python: 
     - pyenv: '3'
   - js:

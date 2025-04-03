@@ -90,6 +90,9 @@
         "strstream": "cpp",
         "ranges": "cpp",
         "functional": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "concepts": "cpp",
+        "format": "cpp",
+        "thread": "cpp"
     },
 }

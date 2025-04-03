@@ -15,13 +15,15 @@ struct ToolInfo {
   bool loaded;
   std::string url;
   std::string version;
-  std::function<void(const std::string &url)> install;
+  std::function<void(const std::string &url, const std::string &version)>
+      install;
   const std::string placeholder = "{version}";
 
   ToolInfo(
       const std::string &url, const std::string &version, bool loaded,
-      std::function<void(const std::string &url)> install =
-          [](const std::string &url) { return 0; })
+      std::function<void(const std::string &url, const std::string &version)>
+          install = [](const std::string &url,
+                       const std::string &version) { return 0; })
 
       : url(url), version(version), loaded(loaded), install(install) {}
 
