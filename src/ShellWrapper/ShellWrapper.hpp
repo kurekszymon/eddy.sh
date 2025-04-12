@@ -44,18 +44,6 @@ std::string parse_home_dir(const std::string input_path) {
   return result.string();
 };
 
-std::string check_eddy_path() {
-  std::string eddy_path = parse_home_dir(EDDY_PATH);
-
-  // can cause issue, cause it's not scheduled.
-
-  if (!fs::exists(eddy_path)) {
-    fs::create_directory(eddy_path);
-  }
-
-  return parse_home_dir(eddy_path);
-}
-
 std::string get_curl_filename(const std::string &url) {
   size_t lastSlashPos = url.find_last_of('/');
   std::string filename = url.substr(lastSlashPos + 1);
@@ -84,12 +72,39 @@ private:
 
 public:
   enum curl_type { download };
+  std::string eddy_path = parse_home_dir(EDDY_PATH);
+  std::string eddy_path_bin = eddy_path + "/bin";
 
   explicit ShellWrapper(std::shared_ptr<CommandHandler> handler)
       : command_handler(handler) {}
 
+  std::string check_eddy_path() {
+    std::string eddy_path = parse_home_dir(EDDY_PATH);
+
+    if (!fs::exists(eddy_path)) {
+      this->mkdir(eddy_path);
+    }
+
+    return eddy_path;
+  }
+
+  std::string check_eddy_bin_path() {
+    std::string eddy_bin_path = parse_home_dir(eddy_path_bin);
+
+    if (!fs::exists(eddy_bin_path)) {
+      this->echo("$: ~/.eddy.sh/bin doesn't exist, creating..");
+      this->mkdir(eddy_bin_path);
+    }
+
+    return eddy_bin_path;
+  }
+
   void echo(const std::string &message) {
     command_handler->run_command("echo " + message);
+  }
+
+  void mkdir(const std::string &path) {
+    command_handler->run_command("mkdir -p " + path);
   }
 
   void run_custom_command(CustomScript command) {
@@ -143,37 +158,40 @@ public:
 
     std::string command = boost::algorithm::join(arguments, " ");
 
-    this->command_handler->run_command(command, file_dir);
+    command_handler->run_command(command, file_dir);
   }
 
   void run_make(const std::string &dir) {
     std::vector<std::string> args = {"sh", "-c", "make"};
     std::string command = boost::algorithm::join(args, " ");
 
-    this->command_handler->run_command(command, dir);
+    command_handler->run_command(command, dir);
   }
 
   std::string extract(const std::string &path, const std::string name,
-                      ArchiveType type) {
-    std::string extract_path = check_eddy_path();
+                      ArchiveType type, std::string extract_path = "") {
     std::string archive_path = path + "/" + name;
+
+    if (extract_path.empty()) {
+      extract_path = check_eddy_path();
+    }
 
     if (type == ArchiveType::TAR_GZ) {
       std::vector<std::string> args = {"tar", "-xzf", archive_path, "-C",
                                        extract_path};
       std::string command = boost::algorithm::join(args, " ");
-      this->command_handler->run_command(command);
+      command_handler->run_command(command);
     } else if (type == ArchiveType::TAR) {
       std::vector<std::string> args = {"tar", "-xf", archive_path, "-C",
                                        extract_path};
       std::string command = boost::algorithm::join(args, " ");
-      this->command_handler->run_command(command);
+      command_handler->run_command(command);
     } else if (type == ArchiveType::ZIP) {
       // Add ZIP support for Unix-like systems
       std::vector<std::string> args = {"unzip", "-o", archive_path, "-d",
                                        extract_path};
       std::string command = boost::algorithm::join(args, " ");
-      this->command_handler->run_command(command);
+      command_handler->run_command(command);
     } else {
       this->echo("Unsupported archive type");
     }
@@ -185,7 +203,7 @@ public:
                                      parse_home_dir(clone_dir)};
     std::string command = boost::algorithm::join(args, " ");
 
-    this->command_handler->run_command(command);
+    command_handler->run_command(command);
   };
 
   void git_pull(const std::string &dir) {
@@ -194,8 +212,21 @@ public:
 
     this->echo("$: git pull in: " + dir);
 
-    this->command_handler->run_command(command, parse_home_dir(dir));
+    command_handler->run_command(command, parse_home_dir(dir));
   };
+
+  void create_symlinks_from_dir(const std::string source_dir,
+                                const std::string &target_dir) {
+    this->echo("Creating symlinks for " + source_dir);
+    this->check_eddy_bin_path();
+
+    std::vector<std::string> args = {
+        "\"", "ln -s " + source_dir + "/* " + target_dir, "\""};
+
+    std::string command = boost::algorithm::join(args, " ");
+
+    command_handler->run_command("bash -c " + command);
+  }
 }
 
 ;

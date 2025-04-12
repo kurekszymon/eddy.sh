@@ -77,15 +77,18 @@ public:
     auto extracted_filename =
         shell->extract(dir, filename, get_cmake_archive_enum());
 
-    // create a function to concat dirs and filenames
-    shell->run_script_file(dir + "/" + extracted_filename, "bootstrap");
-    shell->run_make(dir + "/" + extracted_filename);
-    // add to .bashrc PATH/cmake/bin
+    std::string cmake_dir = dir + "/" + extracted_filename;
+    shell->run_script_file(cmake_dir, "bootstrap");
+    shell->run_make(cmake_dir);
+
+    shell->check_eddy_path();
+
+    shell->create_symlinks_from_dir(cmake_dir + "/bin", shell->eddy_path_bin);
   }
 
   void install_emsdk(const std::string &url, const std::string &version) const {
     shell->echo("$: EMSDK " + version + " installation starts");
-    auto dir = parse_home_dir(EDDY_PATH) + "/emsdk";
+    auto dir = shell->eddy_path + "/emsdk";
 
     shell->git_clone(url, dir);
     shell->git_pull(dir);
@@ -104,8 +107,8 @@ public:
     shell->echo("$: Ninja " + version + " installation starts");
 
     auto [dir, filename] = shell->curl(url, "ninja");
-    shell->extract(dir, filename, ArchiveType::ZIP);
-    shell->make_executable(dir, "ninja");
+    shell->extract(dir, filename, ArchiveType::ZIP, shell->eddy_path_bin);
+    shell->make_executable(shell->eddy_path_bin, "ninja");
 
     // move to ~/.eddy.sh/bin
   }
