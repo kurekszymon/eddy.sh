@@ -16,11 +16,15 @@
 
 #include "Config/Config.hpp"
 #include "ShellWrapper/ShellWrapper.hpp"
-
 using namespace ftxui;
+
+#define LOGGER_RATIO 1.75
 
 int main() {
   auto screen = ScreenInteractive::Fullscreen();
+  // Catch Ctrl+C to add ~/.eddy.sh to shell, then quit.
+  screen.ForceHandleCtrlC(false);
+
   auto command_handler = std::make_shared<CommandHandler>(screen);
   auto shell = std::make_shared<ShellWrapper>(command_handler);
   auto config = std::make_unique<Config>(shell);
@@ -169,7 +173,18 @@ int main() {
   auto main_container =
       Container::Vertical({tab_selection_container, tab_content});
 
-  auto main_renderer = Renderer(main_container, [&] {
+  auto main_container_with_catcher =
+      CatchEvent(main_container, [&command_handler](const Event &event) {
+        if (event == Event::CtrlC) {
+
+          command_handler->run_command("echo hello from ctrl+c");
+
+          return true;
+        }
+        return false;
+      });
+
+  auto main_renderer = Renderer(main_container_with_catcher, [&] {
     return vbox({
         text("eddy.sh") | bold | hcenter,
         hbox({
@@ -182,7 +197,7 @@ int main() {
     });
   });
 
-  int paragraph_renderer_split_position = Terminal::Size().dimx / 1.5;
+  int paragraph_renderer_split_position = Terminal::Size().dimx / LOGGER_RATIO;
   auto group_renderer = ResizableSplitLeft(main_renderer, console_renderer,
                                            &paragraph_renderer_split_position);
 
