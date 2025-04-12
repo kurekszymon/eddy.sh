@@ -1,13 +1,14 @@
 #include <atomic>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
+
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <vector>
 
 namespace bp = boost::process;
 namespace bfs = boost::filesystem;

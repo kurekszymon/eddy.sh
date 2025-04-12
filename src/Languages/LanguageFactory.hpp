@@ -1,7 +1,5 @@
 #ifndef LANGUAGEFACTORY_H
 #define LANGUAGEFACTORY_H
-#include <functional>
-#include <memory>
 
 #include "../ShellWrapper/ShellWrapper.hpp"
 #include "Cpp.hpp"

@@ -2,26 +2,24 @@
 #ifndef SHELL_WRAPPER_H
 #define SHELL_WRAPPER_H
 
-#include <boost/asio.hpp>
 #include <filesystem>
-#include <iostream>
 #include <memory>
 #include <vector>
 
-#include "boost/filesystem.hpp"
-#include "boost/process.hpp"
 #include <boost/algorithm/string/join.hpp>
+#include <boost/asio.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/process.hpp>
 
 #include "../CommandHandler/CommandHandler.hpp"
 #include "../Globals/Globals.hpp"
-
-// #include "../Shell/ArchiveExtractor.hpp"
 #include "../Yaml/CustomScript.hpp"
 
 namespace bp = boost::process;
 namespace bfs = boost::filesystem;
 namespace fs = std::filesystem;
 
+// auto *d = getenv("SHELL"); // add parsing
 // refactor the returns to support exit codes
 // std::pair<int, std::map<T>> probably?
 

@@ -9,7 +9,7 @@
 #include <variant>
 #include <vector>
 
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
 
 #include "../Languages/LanguageFactory.hpp"
 #include "../ShellWrapper/ShellWrapper.hpp"

@@ -1,11 +1,5 @@
 #include <array>
-#include <atomic>
 #include <chrono>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <thread>
-#include <vector>
 
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_base.hpp"
@@ -16,6 +10,7 @@
 
 #include "Config/Config.hpp"
 #include "ShellWrapper/ShellWrapper.hpp"
+
 using namespace ftxui;
 
 #define LOGGER_RATIO 1.75
