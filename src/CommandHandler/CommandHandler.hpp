@@ -67,9 +67,11 @@ public:
   }
 
   void
-  run_command(const std::string &command,
+  run_command(const std::vector<std::string> &args,
               const std::string &working_dir = bfs::current_path().string()) {
     std::lock_guard<std::mutex> lock(queue_mutex);
+
+    std::string command = boost::algorithm::join(args, " ");
     command_queue.push({command, working_dir});
     cv.notify_one();
   }
@@ -103,19 +105,12 @@ private:
     screen.Post(ftxui::Event::Custom);
 
     bp::ipstream std_out;
-    bp::ipstream std_err;
-    bp::child c(command, bp::start_dir(working_dir), bp::std_out > std_out,
-                bp::std_err > std_err);
+
+    bp::child c(bp::shell, command + " 2>&1", bp::start_dir(working_dir),
+                bp::std_out > std_out);
 
     std::string line;
     while (std::getline(std_out, line)) {
-      screen.Post([this, line]() {
-        add_line(line);
-        screen.Post(ftxui::Event::Custom);
-      });
-    }
-
-    while (std::getline(std_err, line)) {
       screen.Post([this, line]() {
         add_line(line);
         screen.Post(ftxui::Event::Custom);

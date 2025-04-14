@@ -1,5 +1,6 @@
 #include <array>
 #include <chrono>
+#include <iostream>
 
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_base.hpp"
@@ -152,8 +153,21 @@ int main() {
   auto tab_selection =
       Menu(&tab_entries, &tab_index, MenuOption::HorizontalAnimated());
 
-  auto exit_button =
-      Button("Exit", [&] { screen.Exit(); }, ButtonOption::Animated());
+  auto exit_button = Button(
+      "Exit",
+      [&] {
+        auto used_shell = detect_used_shell();
+        if (!used_shell) {
+          std::cout << "Unsupported shell type. Please add ~/.eddy.sh/bin to "
+                       "your .shellrc";
+        }
+
+        std::vector<std::string> command = {
+            "echo", "'export PATH=\"~/.eddy.sh/bin:$PATH\"'", ">> ~/.zshrc"};
+        command_handler->run_command(command);
+        screen.Exit();
+      },
+      ButtonOption::Animated());
 
   auto tab_selection_container = Container::Horizontal({
       tab_selection,
@@ -165,21 +179,30 @@ int main() {
            ftxui::yframe | ftxui::yflex | ftxui::border;
   });
 
-  auto main_container =
+  auto _main_container =
       Container::Vertical({tab_selection_container, tab_content});
 
-  auto main_container_with_catcher =
-      CatchEvent(main_container, [&command_handler](const Event &event) {
+  auto main_container = CatchEvent(
+      _main_container, [&command_handler, &shell, &screen](const Event &event) {
         if (event == Event::CtrlC) {
 
-          command_handler->run_command("echo hello from ctrl+c");
+          auto used_shell = detect_used_shell();
+          if (!used_shell) {
+            std::cout << "Unsupported shell type. Please add ~/.eddy.sh/bin to "
+                         "your .shellrc";
+          }
+
+          std::vector<std::string> command = {
+              "echo", "'export PATH=\"~/.eddy.sh/bin:$PATH\"'", ">> ~/.zshrc"};
+          command_handler->run_command(command);
+          screen.Exit();
 
           return true;
         }
         return false;
       });
 
-  auto main_renderer = Renderer(main_container_with_catcher, [&] {
+  auto main_renderer = Renderer(main_container, [&] {
     return vbox({
         text("eddy.sh") | bold | hcenter,
         hbox({

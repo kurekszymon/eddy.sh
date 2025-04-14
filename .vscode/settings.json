@@ -93,6 +93,7 @@
         "span": "cpp",
         "concepts": "cpp",
         "format": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "regex": "cpp"
     },
 }

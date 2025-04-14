@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include <boost/algorithm/string/join.hpp>
@@ -23,8 +24,8 @@ namespace fs = std::filesystem;
 // refactor the returns to support exit codes
 // std::pair<int, std::map<T>> probably?
 
-// use boost::join only in run command
 namespace {
+// since moving to boost::shell, probably not needed, get rid of
 std::string parse_home_dir(const std::string input_path) {
   if (input_path.empty() || input_path[0] != '~') {
     return input_path;
@@ -40,6 +41,27 @@ std::string parse_home_dir(const std::string input_path) {
 
   bfs::path result = home_dir / input_path.substr(1);
   return result.string();
+};
+
+struct ShellConfig {
+  std::string name;
+  std::string rc;
+  std::string profile;
+};
+
+std::optional<ShellConfig> detect_used_shell() {
+  const char *shell = std::getenv("SHELL");
+  std::string shellPath = shell ? std::string(shell) : "";
+
+  if (shellPath.find("bash") != std::string::npos) {
+    return ShellConfig{"bash", "~/.bashrc", "~/.bash_profile"};
+  }
+
+  if (shellPath.find("zsh") != std::string::npos) {
+    return ShellConfig{"zsh", "~/.zshrc", "~/.zprofile"};
+  }
+
+  return std::nullopt;
 };
 
 std::string get_curl_filename(const std::string &url) {
@@ -80,6 +102,7 @@ public:
     std::string eddy_path = parse_home_dir(EDDY_PATH);
 
     if (!fs::exists(eddy_path)) {
+      this->echo("$: ~/.eddy.sh doesn't exist, creating..");
       this->mkdir(eddy_path);
     }
 
@@ -98,16 +121,22 @@ public:
   }
 
   void echo(const std::string &message) {
-    command_handler->run_command("echo " + message);
+    std::vector<std::string> construct = {"echo", message};
+
+    command_handler->run_command(construct);
   }
 
   void mkdir(const std::string &path) {
-    command_handler->run_command("mkdir -p " + path);
+    std::vector<std::string> construct = {"mkdir", "-p", path};
+
+    command_handler->run_command(construct);
   }
 
-  void run_custom_command(CustomScript command) {
-    this->echo("$ " + command.name + " started..");
-    command_handler->run_command(command.cmd);
+  void run_custom_command(CustomScript command_) {
+    this->echo("$ " + command_.name + " started..");
+    std::vector<std::string> construct = {command_.cmd};
+
+    command_handler->run_command(construct);
   }
 
   std::pair<std::string, std::string>
@@ -118,13 +147,11 @@ public:
     const std::string curled_filename = get_curl_filename(url);
     const std::string output_path = eddy_path + "/" + curled_filename;
 
-    const std::vector<std::string> args = {
+    const std::vector<std::string> construct = {
         "curl", "-L", "--output-dir", eddy_path, "-O", url,
     };
 
-    std::string command = boost::algorithm::join(args, " ");
-
-    command_handler->run_command(command);
+    command_handler->run_command(construct);
 
     return std::make_pair(eddy_path, curled_filename);
   }
@@ -135,35 +162,25 @@ public:
     this->echo("$ chmod +x " + filepath);
 
     // causing issues because not scheduled
-    std::vector<std::string> args = {"chmod", "+x", filename};
-    std::string command = boost::algorithm::join(args, " ");
+    std::vector<std::string> construct = {"chmod", "+x", filename};
 
-    command_handler->run_command(command, file_dir);
-
-    this->echo("$ File made executable: " + filepath);
+    command_handler->run_command(construct, file_dir);
   };
 
-  template <typename... Args>
+  template <typename... Arguments>
   void run_script_file(const std::string &file_dir, const std::string &filename,
-                       Args... args) {
-    std::vector<std::string> arguments = {"sh", "-c",
-                                          "\""
-                                          "./" +
-                                              filename};
+                       Arguments... arguments) {
+    std::vector<std::string> construct = {"./" + filename};
 
-    (arguments.push_back(args), ...);
-    arguments.push_back("\"");
+    (construct.push_back(arguments), ...);
 
-    std::string command = boost::algorithm::join(arguments, " ");
-
-    command_handler->run_command(command, file_dir);
+    command_handler->run_command(construct, file_dir);
   }
 
   void run_make(const std::string &dir) {
-    std::vector<std::string> args = {"sh", "-c", "make"};
-    std::string command = boost::algorithm::join(args, " ");
+    std::vector<std::string> construct = {"make"};
 
-    command_handler->run_command(command, dir);
+    command_handler->run_command(construct, dir);
   }
 
   std::string extract(const std::string &path, const std::string name,
@@ -175,55 +192,49 @@ public:
     }
 
     if (type == ArchiveType::TAR_GZ) {
-      std::vector<std::string> args = {"tar", "-xzf", archive_path, "-C",
-                                       extract_path};
-      std::string command = boost::algorithm::join(args, " ");
-      command_handler->run_command(command);
+      std::vector<std::string> construct = {"tar", "-xzf", archive_path, "-C",
+                                            extract_path};
+      command_handler->run_command(construct);
     } else if (type == ArchiveType::TAR) {
-      std::vector<std::string> args = {"tar", "-xf", archive_path, "-C",
-                                       extract_path};
-      std::string command = boost::algorithm::join(args, " ");
-      command_handler->run_command(command);
+      std::vector<std::string> construct = {"tar", "-xf", archive_path, "-C",
+                                            extract_path};
+      command_handler->run_command(construct);
     } else if (type == ArchiveType::ZIP) {
       // Add ZIP support for Unix-like systems
-      std::vector<std::string> args = {"unzip", "-o", archive_path, "-d",
-                                       extract_path};
-      std::string command = boost::algorithm::join(args, " ");
-      command_handler->run_command(command);
+      std::vector<std::string> construct = {"unzip", "-o", archive_path, "-d",
+                                            extract_path};
+      command_handler->run_command(construct);
     } else {
       this->echo("Unsupported archive type");
     }
 
     return get_extracted_filename(name);
   }
-  void git_clone(const std::string &repo_url, const std::string &clone_dir) {
-    std::vector<std::string> args = {"git", "clone", repo_url,
-                                     parse_home_dir(clone_dir)};
-    std::string command = boost::algorithm::join(args, " ");
 
-    command_handler->run_command(command);
+  void git_clone(const std::string &repo_url, const std::string &clone_dir) {
+    std::vector<std::string> construct = {"git", "clone", repo_url,
+                                          parse_home_dir(clone_dir)};
+
+    command_handler->run_command(construct);
   };
 
   void git_pull(const std::string &dir) {
-    std::vector<std::string> args = {"git", "pull"};
-    std::string command = boost::algorithm::join(args, " ");
+    std::vector<std::string> construct = {"git", "pull"};
 
     this->echo("$: git pull in: " + dir);
 
-    command_handler->run_command(command, parse_home_dir(dir));
+    command_handler->run_command(construct, parse_home_dir(dir));
   };
 
   void create_symlinks_from_dir(const std::string source_dir,
                                 const std::string &target_dir) {
-    this->echo("Creating symlinks for " + source_dir);
     this->check_eddy_bin_path();
 
-    std::vector<std::string> args = {
-        "\"", "ln -s " + source_dir + "/* " + target_dir, "\""};
+    std::vector<std::string> construct = {"ln -s", source_dir + "/*",
+                                          target_dir};
 
-    std::string command = boost::algorithm::join(args, " ");
-
-    command_handler->run_command("bash -c " + command);
+    command_handler->run_command(construct);
+    this->echo("Created symlinks for " + source_dir);
   }
 }
 
