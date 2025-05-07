@@ -1,0 +1,19 @@
+--- 
+languages: 
+  - cpp:
+    - emscripten: latest
+    - ninja: 1.12.0
+    - cmake: 3.27.0
+  - javascript:
+    - nvm: latest
+
+git: 
+  clone_dir: "~/repos"
+  repos: 
+    - http://github.com/facebook/react
+
+
+custom_scripts: 
+  - configure_shell: echo "hello"
+
+package_manager: true
