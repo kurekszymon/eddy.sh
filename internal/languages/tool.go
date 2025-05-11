@@ -5,12 +5,12 @@ import "fmt"
 type Tool struct {
 	Name        string
 	Version     string
-	InstallFunc func() error
+	installFunc func() error
 }
 
 func (t *Tool) Install() error {
-	if t.InstallFunc != nil {
-		return t.InstallFunc()
+	if t.installFunc != nil {
+		return t.installFunc()
 	}
 	return fmt.Errorf("Install not implemented for tool: %s", t.Name)
 }

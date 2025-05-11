@@ -4,6 +4,7 @@ languages:
     - emscripten: latest
     - ninja: 1.12.0
     - cmake: 3.27.0
+    - new_tool: 1.0.0
   - javascript:
     - nvm: latest
 
