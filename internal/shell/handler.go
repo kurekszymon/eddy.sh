@@ -8,14 +8,30 @@ import (
 )
 
 type ShellHandler struct {
-	Verbose bool // If true, prints commands before executing
 }
 
-// Run executes a shell command and returns its output or an error
-func (s *ShellHandler) Run(command string, args ...string) error {
-	if s.Verbose {
-		fmt.Printf("Executing: %s %s\n", command, args)
+func (s *ShellHandler) Echo(message string) error {
+	err := s.run("echo $0", message)
+	if err != nil {
+		return fmt.Errorf("failed to echo %s: %w", message, err)
 	}
+	return nil
+}
+
+func (s *ShellHandler) Brew(pkg string) error {
+	err := s.run("brew install $0", pkg)
+	if err != nil {
+		return fmt.Errorf("failed to install %s: %w", pkg, err)
+	}
+	return nil
+}
+
+// This is the main function to run a command in the shell.
+// Note: The command is executed in a shell, so shell features like pipes and redirection are available
+// but the command should be passed as a single string
+// For example, to run "echo hello {name}", you would call:
+// Run("echo hello $0", "{name}")
+func (s *ShellHandler) run(command string, args ...string) error {
 
 	fullCommand := append([]string{"-c", command}, args...)
 	cmd := exec.Command("sh", fullCommand...)
@@ -31,12 +47,12 @@ func (s *ShellHandler) Run(command string, args ...string) error {
 	}
 
 	cmd.Start()
-	s.HandlePipes(stdout, stderr)
+	s.handlePipes(stdout, stderr)
 	cmd.Wait()
 	return nil
 }
 
-func (s *ShellHandler) HandlePipes(stdout io.Reader, stderr io.Reader) {
+func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 	stdout_reader := bufio.NewReader(stdout)
 	line, err := stdout_reader.ReadString('\n')
 

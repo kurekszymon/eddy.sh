@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/kurekszymon/eddy.sh/internal/languages"
+	"github.com/kurekszymon/eddy.sh/internal/shell"
 	"github.com/kurekszymon/eddy.sh/internal/types"
 	"gopkg.in/yaml.v3"
 )
@@ -19,17 +20,19 @@ type Config struct {
 	Languages     []map[string][]map[string]string `yaml:"languages"`
 	Git           types.Git                        `yaml:"git"`
 	CustomScripts []map[string]string              `yaml:"custom_scripts"`
-
-	// Processed fields for easier access
-	LanguagesWrapper *Languages // Change this line
+	Platform      struct {
+		Brew bool `yaml:"brew"`
+		Apt  bool `yaml:"apt"`
+	} `yaml:"platform"`
+	LanguagesWrapper *Languages
 	Scripts          []types.CustomScript
 }
 
 // Process transforms the raw YAML structure into a more accessible format
-func (c *Config) Process() {
+func (c *Config) Process(shell *shell.ShellHandler) {
 	c.LanguagesWrapper = &Languages{
-		Cpp:        &languages.CppTools{},
-		Javascript: &languages.JsTools{},
+		Cpp:        &languages.CppTools{Shell: shell},
+		Javascript: &languages.JsTools{Shell: shell},
 	}
 
 	for _, langGroup := range c.Languages {
@@ -107,7 +110,7 @@ func (c *Config) Print() {
 	}
 }
 
-func LoadConfig(filename string) (*Config, error) {
+func LoadConfig(filename string, shell *shell.ShellHandler) (*Config, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -119,6 +122,6 @@ func LoadConfig(filename string) (*Config, error) {
 		return nil, err
 	}
 
-	config.Process()
+	config.Process(shell)
 	return config, nil
 }

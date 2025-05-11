@@ -2,9 +2,13 @@ package languages
 
 import (
 	"strings"
+
+	"github.com/kurekszymon/eddy.sh/internal/shell"
 )
 
 type JsTools struct {
+	Shell *shell.ShellHandler
+
 	Nvm       *Tool
 	NotLoaded *[]Tool
 }

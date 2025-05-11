@@ -2,30 +2,51 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/kurekszymon/eddy.sh/internal/config"
+	"github.com/kurekszymon/eddy.sh/internal/errors"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 )
 
 func main() {
-	config, err := config.LoadConfig("config.yaml")
+	handler := &shell.ShellHandler{}
+
+	config, err := config.LoadConfig("config.yaml", handler)
 	if err != nil {
 		// TODO: handle no config - generate sample
-		log.Fatalf("Failed to load config: %v", err)
+		fmt.Printf("Failed to load config: %v", err)
+		os.Exit(errors.NO_CONFIG)
 	}
 
 	config.Print()
+	var i string
+
+	fmt.Print("Do you want to proceed with this configuration: (Y/N) ")
+	fmt.Scan(&i)
+
+	if i != "Y" && i != "y" {
+		os.Exit(errors.WRONG_CONFIG)
+	}
+	fmt.Println("Proceeding with the installation...")
+	// TODO: check for git.
+	if config.Platform.Brew {
+		fmt.Println("Checking for brew...")
+		// install brew if not installed
+		fmt.Println("Brew is installed and will be used for installation.")
+	}
 
 	cpp := config.LanguagesWrapper.Cpp
+	err = cpp.Cmake.Install()
 
-	cpp.Emscripten.Install()
-
-	handler := &shell.ShellHandler{Verbose: true}
-
-	err = handler.Run("ls . && ls 1>&2 .")
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Printf("ERROR: Failed to install cmake: %v", err)
 	}
+
+	err = cpp.Ninja.Install()
+	if err != nil {
+		fmt.Printf("ERROR: Failed to install ninja: %v", err)
+	}
+	// cpp.Emscripten.Install()
 
 }

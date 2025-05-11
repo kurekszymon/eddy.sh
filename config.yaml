@@ -17,4 +17,6 @@ git:
 custom_scripts: 
   - configure_shell: echo "hello"
 
-package_manager: true
+platform: 
+  brew: true
+  apt: false
