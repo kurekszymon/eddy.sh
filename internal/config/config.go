@@ -21,9 +21,10 @@ type Config struct {
 	Git           types.Git                        `yaml:"git"`
 	CustomScripts []map[string]string              `yaml:"custom_scripts"`
 	Platform      struct {
-		Brew bool `yaml:"brew"`
-		Apt  bool `yaml:"apt"`
+		Brew   bool `yaml:"brew"`
+		Manual bool `yaml:"install_manually"`
 	} `yaml:"platform"`
+
 	LanguagesWrapper *Languages
 	Scripts          []types.CustomScript
 }

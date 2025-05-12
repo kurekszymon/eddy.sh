@@ -20,9 +20,9 @@ func main() {
 	}
 
 	config.Print()
-	var i string
 
 	fmt.Print("Do you want to proceed with this configuration: (Y/N) ")
+	var i string
 	fmt.Scan(&i)
 
 	if i != "Y" && i != "y" {
@@ -47,6 +47,5 @@ func main() {
 	if err != nil {
 		fmt.Printf("ERROR: Failed to install ninja: %v", err)
 	}
-	// cpp.Emscripten.Install()
 
 }

@@ -2,7 +2,7 @@
 languages: 
   - cpp:
     - emscripten: latest
-    - ninja: 1.12.0
+    - ninja: 1.12.1
     - cmake: 3.27.0
     - new_tool: 1.0.0
   - javascript:
@@ -18,5 +18,5 @@ custom_scripts:
   - configure_shell: echo "hello"
 
 platform: 
-  brew: true
-  apt: false
+  manual_install: true # will install all tools manually (e.g. using curl)
+  brew: false # if you care about specific versions, use manual install due to how brew is handling formulaes versions
