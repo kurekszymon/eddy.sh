@@ -1,8 +1,8 @@
 package types
 
-type Platform string
+type PkgManager string
 
 const (
-	Brew   Platform = "brew"
-	Manual Platform = "manual"
+	Brew   PkgManager = "brew"
+	Manual PkgManager = "manual"
 )

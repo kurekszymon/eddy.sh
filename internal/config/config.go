@@ -5,53 +5,63 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kurekszymon/eddy.sh/internal/languages"
+	"github.com/kurekszymon/eddy.sh/internal/installers"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 	"github.com/kurekszymon/eddy.sh/internal/types"
 	"gopkg.in/yaml.v3"
 )
 
-type Languages struct {
-	Cpp        *languages.CppTools
-	Javascript *languages.JsTools
+type Installers struct {
+	Cpp        *installers.CppTools
+	Javascript *installers.JsTools
+	Tools      *installers.Tools
+}
+
+type YamlPlatform struct {
+	Brew   bool `yaml:"brew"`
+	Manual bool `yaml:"manual_installation"`
 }
 
 type Config struct {
 	Languages     []map[string][]map[string]string `yaml:"languages"`
 	Git           types.Git                        `yaml:"git"`
 	CustomScripts []map[string]string              `yaml:"custom_scripts"`
-	Platform      struct {
-		Brew   bool `yaml:"brew"`
-		Manual bool `yaml:"install_manually"`
-	} `yaml:"platform"`
+	Platform      YamlPlatform                     `yaml:"platform"`
 
-	LanguagesWrapper *Languages
-	Scripts          []types.CustomScript
+	PkgManager types.PkgManager
+	Installers *Installers
+	Scripts    []types.CustomScript
 }
 
 // Process transforms the raw YAML structure into a more accessible format
 func (c *Config) Process(shell *shell.ShellHandler) {
-	c.LanguagesWrapper = &Languages{
-		Cpp:        &languages.CppTools{Shell: shell},
-		Javascript: &languages.JsTools{Shell: shell},
+	platform := c.DetermineInstalationType(c.Platform)
+	c.PkgManager = platform
+
+	c.Installers = &Installers{
+		Cpp:        &installers.CppTools{Shell: shell, PkgManager: c.PkgManager},
+		Javascript: &installers.JsTools{Shell: shell},
+		Tools:      &installers.Tools{Shell: shell},
 	}
+
+	c.Installers.Tools = installers.GetTools(shell)
+
+	var setter installers.ToolSetter
 
 	for _, langGroup := range c.Languages {
 		for langName, toolsList := range langGroup {
 			for _, toolMap := range toolsList {
 				for toolName, version := range toolMap {
-					tool := &languages.Tool{
+					tool := &installers.Tool{
 						Name:    toolName,
 						Version: version,
 					}
 
-					var setter languages.ToolSetter
-
 					switch strings.ToLower(langName) {
 					case "cpp":
-						setter = c.LanguagesWrapper.Cpp
+						setter = c.Installers.Cpp
 					case "javascript":
-						setter = c.LanguagesWrapper.Javascript
+						setter = c.Installers.Javascript
 					}
 
 					if setter != nil {
@@ -73,27 +83,27 @@ func (c *Config) Process(shell *shell.ShellHandler) {
 func (c *Config) Print() {
 	fmt.Printf("C++ Configuration:\n")
 
-	if c.LanguagesWrapper.Cpp.Emscripten != nil {
-		fmt.Printf("  Emscripten: %s (version: %s)\n", c.LanguagesWrapper.Cpp.Emscripten.Name, c.LanguagesWrapper.Cpp.Emscripten.Version)
+	if c.Installers.Cpp.Emscripten != nil {
+		fmt.Printf("  Emscripten: %s (version: %s)\n", c.Installers.Cpp.Emscripten.Name, c.Installers.Cpp.Emscripten.Version)
 	}
-	if c.LanguagesWrapper.Cpp.Ninja != nil {
-		fmt.Printf("  Ninja: %s (version: %s)\n", c.LanguagesWrapper.Cpp.Ninja.Name, c.LanguagesWrapper.Cpp.Ninja.Version)
+	if c.Installers.Cpp.Ninja != nil {
+		fmt.Printf("  Ninja: %s (version: %s)\n", c.Installers.Cpp.Ninja.Name, c.Installers.Cpp.Ninja.Version)
 	}
-	if c.LanguagesWrapper.Cpp.Cmake != nil {
-		fmt.Printf("  CMake: %s (version: %s)\n", c.LanguagesWrapper.Cpp.Cmake.Name, c.LanguagesWrapper.Cpp.Cmake.Version)
+	if c.Installers.Cpp.Cmake != nil {
+		fmt.Printf("  CMake: %s (version: %s)\n", c.Installers.Cpp.Cmake.Name, c.Installers.Cpp.Cmake.Version)
 	}
 
 	fmt.Printf("\nJavaScript Configuration:\n")
-	if c.LanguagesWrapper.Javascript.Nvm != nil {
-		fmt.Printf("  NVM: %s (version: %s)\n", c.LanguagesWrapper.Javascript.Nvm.Name, c.LanguagesWrapper.Javascript.Nvm.Version)
+	if c.Installers.Javascript.Nvm != nil {
+		fmt.Printf("  NVM: %s (version: %s)\n", c.Installers.Javascript.Nvm.Name, c.Installers.Javascript.Nvm.Version)
 	}
 
-	if c.LanguagesWrapper.Cpp.NotLoaded != nil && c.LanguagesWrapper.Javascript.NotLoaded != nil {
+	if c.Installers.Cpp.NotLoaded != nil && c.Installers.Javascript.NotLoaded != nil {
 		fmt.Println("\nTools that won't be installed (please consider adding custom instructions for them):")
-		for _, tool := range *c.LanguagesWrapper.Cpp.NotLoaded {
+		for _, tool := range *c.Installers.Cpp.NotLoaded {
 			fmt.Printf("- %s\n", tool.Name)
 		}
-		for _, tool := range *c.LanguagesWrapper.Javascript.NotLoaded {
+		for _, tool := range *c.Installers.Javascript.NotLoaded {
 			fmt.Printf("- %s\n", tool.Name)
 		}
 	}
@@ -109,6 +119,11 @@ func (c *Config) Print() {
 	for _, script := range c.Scripts {
 		fmt.Printf("  %s: %s\n", script.Name, script.Command)
 	}
+
+	fmt.Printf("\nPlatform configuration:\n")
+	fmt.Printf(" - use brew: %t\n", c.Platform.Brew)
+	fmt.Printf(" - manual installation: %t\n", c.Platform.Manual)
+
 }
 
 func LoadConfig(filename string, shell *shell.ShellHandler) (*Config, error) {
@@ -125,4 +140,15 @@ func LoadConfig(filename string, shell *shell.ShellHandler) (*Config, error) {
 
 	config.Process(shell)
 	return config, nil
+}
+
+func (c *Config) DetermineInstalationType(platform YamlPlatform) types.PkgManager {
+	switch {
+	case platform.Brew:
+		return types.Brew
+	case platform.Manual:
+		return types.Manual
+	default:
+		return types.Manual
+	}
 }

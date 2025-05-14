@@ -29,14 +29,33 @@ func main() {
 		os.Exit(errors.WRONG_CONFIG)
 	}
 	fmt.Println("Proceeding with the installation...")
-	// TODO: check for git.
+
 	if config.Platform.Brew {
 		fmt.Println("Checking for brew...")
-		// install brew if not installed
+		err = handler.CheckCommand("brew")
+		if err != nil {
+			fmt.Println("Brew is not installed. Installing brew...")
+			err = config.Installers.Tools.Brew.Install()
+			if err != nil {
+				fmt.Printf("ERROR: Failed to install brew: %v", err)
+				fmt.Printf("Please try to install brew manually or specify manual installation in config.: %v", err)
+				os.Exit(errors.BREW_SPECIFIED_BUT_NOT_INSTALLED)
+
+			}
+		}
 		fmt.Println("Brew is installed and will be used for installation.")
 	}
 
-	cpp := config.LanguagesWrapper.Cpp
+	err = handler.CheckCommand("git")
+	if err != nil {
+		fmt.Println("Git is not installed. Installing git...")
+		err = config.Installers.Tools.Git.Install()
+		if err != nil {
+			fmt.Printf("ERROR: Failed to install git: %v", err)
+		}
+	}
+
+	cpp := config.Installers.Cpp
 	err = cpp.Cmake.Install()
 
 	if err != nil {

@@ -18,5 +18,5 @@ custom_scripts:
   - configure_shell: echo "hello"
 
 platform: 
-  manual_install: true # will install all tools manually (e.g. using curl)
-  brew: false # if you care about specific versions, use manual install due to how brew is handling formulaes versions
+  manual_installation: false # will install all tools manually (e.g. using curl)
+  brew: true # if you care about specific versions, use manual install due to how brew is handling formulaes versions

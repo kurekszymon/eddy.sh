@@ -13,15 +13,24 @@ import (
 
 type ShellHandler struct{}
 
-// using code down there handle getting eddy.sh dir that should resolve to ~/.eddy.sh
+func (s *ShellHandler) CheckCommand(command string) error {
+	// probably won't work on windows. replace $0 with %VARIABLE% and NUL.
+	// educate yourself on how to do this
+	err := s.run("command -v $0 > /dev/null", command)
+
+	if err != nil {
+		return fmt.Errorf("command %s not found: %w", command, err)
+	}
+
+	return nil
+}
+
 func (s *ShellHandler) GetEddyDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get user home directory: %w", err)
 	}
 	eddyDir := filepath.Join(homeDir, ".eddy.sh")
-	// check if the directory exists and create it if it doesn't
-	// you can use s.existsDir() method here
 	s.ensureDir(eddyDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to create eddy dir: %w", err)
@@ -44,7 +53,7 @@ func (s *ShellHandler) Curl(url string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get eddy dir: %w", err)
 	}
-	err = s.run("curl -L --output-dir $0 -O $1", eddyDir, "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip")
+	err = s.run("curl -fsSL --output-dir $0 -O $1", eddyDir, url)
 	if err != nil {
 		return fmt.Errorf("failed to run curl: %w", err)
 	}
@@ -109,7 +118,16 @@ func (s *ShellHandler) run(command string, args ...string) error {
 
 	cmd.Start()
 	s.handlePipes(stdout, stderr)
-	cmd.Wait()
+	err = cmd.Wait()
+
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			if exitError.ExitCode() != 0 {
+				return fmt.Errorf("command %s failed with exit code %d", command, exitError.ExitCode())
+			}
+		}
+	}
+
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package languages
+package installers
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 )
 
 type CppTools struct {
-	Shell    *shell.ShellHandler
-	Platform types.Platform
+	Shell      *shell.ShellHandler
+	PkgManager types.PkgManager
 
 	Emscripten *Tool
 	Ninja      *Tool
@@ -41,7 +41,7 @@ func (c *CppTools) SetTool(toolName string, tool *Tool) {
 }
 
 func (c *CppTools) cmakeInstall() error {
-	if c.Platform == types.Brew {
+	if c.PkgManager == types.Brew {
 		fmt.Println("Installing cmake...")
 		err := c.Shell.Brew("cmake")
 		if err != nil {
@@ -57,7 +57,7 @@ func (c *CppTools) cmakeInstall() error {
 }
 
 func (c *CppTools) ninjaInstall() error {
-	if c.Platform == types.Brew {
+	if c.PkgManager == types.Brew {
 		fmt.Println("Installing ninja...")
 		err := c.Shell.Brew("ninja")
 		if err != nil {
@@ -83,7 +83,7 @@ func (c *CppTools) ninjaInstall() error {
 }
 
 func (c *CppTools) emscriptenInstall() error {
-	if c.Platform == types.Brew {
+	if c.PkgManager == types.Brew {
 		fmt.Println("Installing emscripten...")
 		err := c.Shell.Brew("emscripten")
 		if err != nil {

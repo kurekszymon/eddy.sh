@@ -1,4 +1,4 @@
-package languages
+package installers
 
 import "fmt"
 
