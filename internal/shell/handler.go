@@ -2,13 +2,12 @@ package shell
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type ShellHandler struct{}
@@ -30,20 +29,47 @@ func (s *ShellHandler) GetEddyDir() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get user home directory: %w", err)
 	}
-	eddyDir := filepath.Join(homeDir, ".eddy.sh")
-	s.ensureDir(eddyDir)
+
+	eddyDir := ExpandPath(filepath.Join(homeDir, ".eddy.sh"))
+
+	err = s.ensureDir(eddyDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to create eddy dir: %w", err)
+		return "", err
 	}
 
 	return eddyDir, nil
 }
 
+func (s *ShellHandler) ChmodX(filename string) error {
+	fmt.Println("running chmod +x on", ExpandPath(filename))
+	err := s.run("chmod +x $0", ExpandPath(filename))
+	if err != nil {
+		return fmt.Errorf("failed to make file executable: %w", err)
+	}
+	return nil
+}
+
 func (s *ShellHandler) RunScriptFile(filename string) error {
-	s.run("chmod +x $0", filename)
+	filename = ExpandPath(filename)
+	s.ChmodX(filename)
+
 	err := s.run(filename)
 	if err != nil {
 		return fmt.Errorf("failed to run script file: %w", err)
+	}
+	return nil
+}
+
+func (s *ShellHandler) RunScriptFileInDir(filename string, dir string, args ...string) error {
+	scriptPath := ExpandPath(filepath.Join(dir, filename))
+	args = append([]string{scriptPath}, args...)
+
+	s.ChmodX(scriptPath)
+
+	command := fmt.Sprintf("%s $@", scriptPath)
+	err := s.run(command, args...)
+	if err != nil {
+		return fmt.Errorf("failed to run script file in directory: %w", err)
 	}
 	return nil
 }
@@ -53,7 +79,9 @@ func (s *ShellHandler) Curl(url string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get eddy dir: %w", err)
 	}
-	err = s.run("curl -fsSL --output-dir $0 -O $1", eddyDir, url)
+
+	command := fmt.Sprintf("curl -fL --output-dir %s -O %s", eddyDir, url)
+	err = s.run(command)
 	if err != nil {
 		return fmt.Errorf("failed to run curl: %w", err)
 	}
@@ -74,9 +102,11 @@ func (s *ShellHandler) Unzip(filename string, target_dir string) error {
 	}
 
 	err = s.run("tar -xf $0 -C $1", filename, target_dir)
+
 	if err != nil {
-		return fmt.Errorf("failed to run tar -xf: %w", err)
+		return err
 	}
+
 	return nil
 }
 
@@ -96,15 +126,36 @@ func (s *ShellHandler) Brew(pkg string) error {
 	return nil
 }
 
+func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
+	repoName := filepath.Base(repoURL)
+	if filepath.Ext(repoName) == ".git" {
+		repoName = repoName[:len(repoName)-len(".git")]
+	}
+
+	cloneDir = ExpandPath(filepath.Join(cloneDir, repoName))
+
+	err := s.run("git clone $0 $1", repoURL, ExpandPath(cloneDir))
+	if err != nil {
+		return fmt.Errorf("failed to clone repository %s into %s: %w", repoURL, cloneDir, err)
+	}
+
+	fmt.Printf("Successfully cloned %s into %s\n", repoURL, cloneDir)
+	return nil
+}
+
 // This is the main function to run a command in the shell.
 // Note: The command is executed in a shell, so shell features like pipes and redirection are available
 // but the command should be passed as a single string
 // For example, to run "echo hello {name}", you would call:
 // Run("echo hello $0", "{name}")
 func (s *ShellHandler) run(command string, args ...string) error {
-
 	fullCommand := append([]string{"-c", command}, args...)
+
+	if os.Getenv("EDDY_DEBUG") == "1" {
+		fmt.Println("Running command:", strings.Join(fullCommand, " "))
+	}
 	cmd := exec.Command("sh", fullCommand...)
+	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
 	stdout, err := cmd.StdoutPipe()
 
 	if err != nil {
@@ -136,31 +187,65 @@ func (s *ShellHandler) ensureDir(path string) error {
 	if err == nil {
 		return nil
 	}
-	if errors.Is(err, fs.ErrNotExist) {
-		err := os.MkdirAll(path, 0755)
-		if err != nil {
-			return fmt.Errorf("failed to create directory %s: %w", path, err)
-		}
-		return nil
+	err = os.MkdirAll(path, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", path, err)
 	}
-	return fmt.Errorf("failed to check directory %s: %w", path, err)
+	return nil
 }
 
 func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
-	stdout_reader := bufio.NewReader(stdout)
-	line, err := stdout_reader.ReadString('\n')
+	stdoutChan := make(chan string)
+	stderrChan := make(chan string)
 
-	for err == nil {
-		line = "stdout: " + line
-		fmt.Print(line)
-		line, err = stdout_reader.ReadString('\n')
-	}
+	go func() {
+		stdoutReader := bufio.NewReader(stdout)
+		for {
+			line, err := stdoutReader.ReadString('\n')
+			if err != nil {
+				if err != io.EOF {
+					fmt.Printf("Error reading stdout: %v\n", err)
+				}
+				close(stdoutChan)
+				return
+			}
+			stdoutChan <- "stdout: " + line
+		}
+	}()
 
-	stderr_reader := bufio.NewReader(stderr)
-	er_line, er_err := stderr_reader.ReadString('\n')
-	for er_err == nil {
-		er_line = "stderr: " + er_line
-		fmt.Print(er_line)
-		er_line, er_err = stderr_reader.ReadString('\n')
+	go func() {
+		stderrReader := bufio.NewReader(stderr)
+		for {
+			line, err := stderrReader.ReadString('\n')
+			if err != nil {
+				if err != io.EOF {
+					fmt.Printf("Error reading stderr: %v\n", err)
+				}
+				close(stderrChan)
+				return
+			}
+			stderrChan <- "stderr: " + line
+		}
+	}()
+
+	for {
+		select {
+		case line, ok := <-stdoutChan:
+			if !ok {
+				stdoutChan = nil
+			} else {
+				fmt.Print(line)
+			}
+		case line, ok := <-stderrChan:
+			if !ok {
+				stderrChan = nil
+			} else {
+				fmt.Print(line)
+			}
+		}
+
+		if stdoutChan == nil && stderrChan == nil {
+			break
+		}
 	}
 }
