@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/kurekszymon/eddy.sh/internal/config"
-	"github.com/kurekszymon/eddy.sh/internal/errors"
+	"github.com/kurekszymon/eddy.sh/internal/error_codes"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 )
 
@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		// TODO: handle no config - generate sample
 		fmt.Printf("Failed to load config: %v", err)
-		os.Exit(errors.NO_CONFIG)
+		os.Exit(error_codes.NO_CONFIG)
 	}
 
 	config.Print()
@@ -26,7 +26,8 @@ func main() {
 	fmt.Scan(&i)
 
 	if i != "Y" && i != "y" {
-		os.Exit(errors.WRONG_CONFIG)
+		fmt.Println("ERROR: Failed to load config (user aborted)")
+		os.Exit(error_codes.WRONG_CONFIG)
 	}
 	fmt.Println("Proceeding with the installation...")
 
@@ -39,8 +40,7 @@ func main() {
 			if err != nil {
 				fmt.Printf("ERROR: Failed to install brew: %v", err)
 				fmt.Printf("Please try to install brew manually or specify manual installation in config.: %v", err)
-				os.Exit(errors.BREW_SPECIFIED_BUT_NOT_INSTALLED)
-
+				os.Exit(error_codes.BREW_SPECIFIED_BUT_NOT_INSTALLED)
 			}
 		}
 		fmt.Println("Brew is installed and will be used for installation.")
@@ -56,15 +56,6 @@ func main() {
 	}
 
 	cpp := config.Installers.Cpp
-	err = cpp.Cmake.Install()
-
-	if err != nil {
-		fmt.Printf("ERROR: Failed to install cmake: %v", err)
-	}
-
-	err = cpp.Ninja.Install()
-	if err != nil {
-		fmt.Printf("ERROR: Failed to install ninja: %v", err)
-	}
+	cpp.Install()
 
 }

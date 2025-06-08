@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	"github.com/kurekszymon/eddy.sh/internal/installers"
+	"github.com/kurekszymon/eddy.sh/internal/installers/cpp"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 	"github.com/kurekszymon/eddy.sh/internal/types"
 	"gopkg.in/yaml.v3"
 )
 
 type Installers struct {
-	Cpp        *installers.CppTools
+	Cpp        *cpp.Tools
 	Javascript *installers.JsTools
 	Tools      *installers.Tools
 }
@@ -39,7 +40,7 @@ func (c *Config) Process(shell *shell.ShellHandler) {
 	c.PkgManager = platform
 
 	c.Installers = &Installers{
-		Cpp:        &installers.CppTools{Shell: shell, PkgManager: c.PkgManager},
+		Cpp:        &cpp.Tools{Shell: shell, PkgManager: c.PkgManager, CloneDir: c.Git.CloneDir},
 		Javascript: &installers.JsTools{Shell: shell},
 		Tools:      &installers.Tools{Shell: shell},
 	}

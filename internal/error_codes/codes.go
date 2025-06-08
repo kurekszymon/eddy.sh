@@ -1,4 +1,4 @@
-package errors
+package error_codes
 
 const (
 	NO_CONFIG                        = 3
