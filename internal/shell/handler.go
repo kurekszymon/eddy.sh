@@ -209,7 +209,11 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 				close(stdoutChan)
 				return
 			}
-			stdoutChan <- "stdout: " + line
+
+			if os.Getenv("EDDY_DEBUG") == "1" {
+				line = "stderr: " + line
+			}
+			stdoutChan <- line
 		}
 	}()
 
@@ -224,7 +228,10 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 				close(stderrChan)
 				return
 			}
-			stderrChan <- "stderr: " + line
+			if os.Getenv("EDDY_DEBUG") == "1" {
+				line = "stderr: " + line
+			}
+			stderrChan <- line
 		}
 	}()
 

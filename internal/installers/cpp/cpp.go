@@ -42,29 +42,30 @@ func (c *Tools) SetTool(toolName string, tool *installers.Tool) {
 }
 
 func (c *Tools) Install() {
-	errors := []error{}
+	errors := make(map[string]error)
 
 	if c.Emscripten != nil {
 		if err := c.Emscripten.Install(); err != nil {
-			errors = append(errors, err)
+			errors["Emscripten"] = err
+
 		}
 	}
 
 	if c.Ninja != nil {
 		if err := c.Ninja.Install(); err != nil {
-			errors = append(errors, err)
+			errors["Ninja"] = err
 		}
 	}
 
 	if c.Cmake != nil {
 		if err := c.Cmake.Install(); err != nil {
-			errors = append(errors, err)
+			errors["CMake"] = err
 		}
 	}
 
 	if len(errors) > 0 {
-		for _, err := range errors {
-			fmt.Printf("Error installing tool: %v\n", err)
+		for toolName, err := range errors {
+			fmt.Printf("Error installing %s: %v\n", toolName, err)
 		}
 	}
 }

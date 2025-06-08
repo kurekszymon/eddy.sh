@@ -2,6 +2,8 @@ package cpp
 
 import (
 	"fmt"
+	"path/filepath"
+	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/types"
 )
@@ -25,7 +27,20 @@ func (c *Tools) brewCmake() error {
 }
 
 func (c *Tools) manualCmake() error {
-	fmt.Println("Manual installation of cmake is not supported yet.")
-	fmt.Println("Please follow the instructions at https://cmake.org/install/")
+	fmt.Println("Installing cmake using curl...")
+
+	var url string
+	if runtime.GOOS == "windows" {
+		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/cmake-%s.zip", c.Cmake.Version, c.Cmake.Version)
+
+	} else {
+		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/cmake-%s.tar.gz", c.Cmake.Version, c.Cmake.Version)
+	}
+
+	c.Shell.Curl(url)
+	filename := filepath.Base(url)
+	c.Shell.Unzip(filename, "")
+
+	fmt.Println("SUCCESS: CMake installed successfully")
 	return nil
 }

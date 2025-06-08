@@ -46,8 +46,9 @@ func (c *Tools) manualNinja() error {
 		return fmt.Errorf("failed to get eddy dir: %w", err)
 	}
 
-	ninja := filepath.Join(eddy_dir, "ninja")
-	c.Shell.ChmodX(ninja)
+	ninja_path := filepath.Join(eddy_dir, "ninja")
+	c.Shell.ChmodX(ninja_path)
 
+	fmt.Println("SUCCESS: Ninja installed successfully at", ninja_path)
 	return nil
 }
