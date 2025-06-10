@@ -33,24 +33,29 @@ func (c *Tools) manualEmsdk() error {
 		return errors.New("git is not installed, please install git to proceed with emscripten installation")
 	}
 
+	eddy_dir, err := c.Shell.GetEddyDir()
+	if err != nil {
+		return fmt.Errorf("failed to get eddy directory: %w", err)
+	}
+
 	fmt.Println("Cloning emscripten repository...")
-	err = c.Shell.GitClone("https://github.com/emscripten-core/emsdk.git", c.CloneDir)
+	err = c.Shell.GitClone("https://github.com/emscripten-core/emsdk.git", eddy_dir)
 
 	if err != nil {
 		return err
 	}
 
-	c.CloneDir = filepath.Join(c.CloneDir, "emsdk")
+	emsdk_dir := filepath.Join(eddy_dir, "emsdk")
 
 	fmt.Println("Running emscripten install script...")
-	err = c.Shell.RunScriptFileInDir("emsdk", c.CloneDir, "install", "latest")
+	err = c.Shell.RunScriptFileInDir("emsdk", emsdk_dir, "install", "latest")
 
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Activating emscripten environment...")
-	err = c.Shell.RunScriptFileInDir("emsdk", c.CloneDir, "activate", "latest")
+	err = c.Shell.RunScriptFileInDir("emsdk", emsdk_dir, "activate", "latest")
 
 	if err != nil {
 		return err

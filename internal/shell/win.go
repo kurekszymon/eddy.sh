@@ -3,9 +3,9 @@
 
 package shell
 
-type ShellHandler struct{}
+import "errors"
 
-// TODO: Example commands, need to be adapted for Windows
+type ShellHandler struct{}
 
 func (s *ShellHandler) CheckCommand(command string) error {
 	// Windows does not have a direct equivalent to 'command -v'
@@ -19,19 +19,6 @@ func (s *ShellHandler) CheckCommand(command string) error {
 	return nil
 }
 
-// add echo method
-func (s *ShellHandler) Echo(message string) error {
-	// Windows does not have a direct equivalent to 'echo'
-	// We can use 'echo' command to print messages
-	dir, err := s.GetEddyDir()
-	if err != nil {
-		return err
-	}
-	err = s.run("echo %s %s", message, dir)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (s *ShellHandler) Brew(pkg string) error {
+	return errors.New("brew is not supported on Windows, please use a different package manager")
 }

@@ -2,6 +2,7 @@ package cpp
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/kurekszymon/eddy.sh/internal/globals"
@@ -47,7 +48,7 @@ func (c *Tools) manualNinja() error {
 	}
 
 	ninja_path := filepath.Join(eddy_dir, "ninja")
-	c.Shell.ChmodX(ninja_path)
+	os.Chmod(ninja_path, 0755) // Ensure the file is executable
 
 	fmt.Println("SUCCESS: Ninja installed successfully at", ninja_path)
 	return nil
