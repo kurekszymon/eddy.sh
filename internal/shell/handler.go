@@ -151,8 +151,8 @@ func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
 func (s *ShellHandler) run(command string, args ...string) error {
 	fullCommand := append([]string{"-c", command}, args...)
 
-	if os.Getenv("EDDY_DEBUG") == "1" {
-		fmt.Println("Running command:", strings.Join(fullCommand, " "))
+	if DebugEnabled {
+		fmt.Println("DEBUG: Running command:", strings.Join(fullCommand, " "))
 	}
 	cmd := exec.Command("sh", fullCommand...)
 	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
@@ -210,8 +210,8 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 				return
 			}
 
-			if os.Getenv("EDDY_DEBUG") == "1" {
-				line = "stderr: " + line
+			if DebugEnabled {
+				line = "DEBUG stdout: " + line
 			}
 			stdoutChan <- line
 		}
@@ -228,8 +228,8 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 				close(stderrChan)
 				return
 			}
-			if os.Getenv("EDDY_DEBUG") == "1" {
-				line = "stderr: " + line
+			if DebugEnabled {
+				line = "DEBUG: stderr: " + line
 			}
 			stderrChan <- line
 		}

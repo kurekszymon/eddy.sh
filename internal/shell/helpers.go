@@ -18,3 +18,5 @@ func ExpandPath(path string) string {
 	}
 	return path
 }
+
+var DebugEnabled = strings.EqualFold(os.Getenv("EDDY_DEBUG"), "1")
