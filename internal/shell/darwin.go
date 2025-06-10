@@ -10,8 +10,6 @@ import (
 type ShellHandler struct{}
 
 func (s *ShellHandler) CheckCommand(command string) error {
-	// probably won't work on windows. replace $0 with %VARIABLE% and NUL.
-	// educate yourself on how to do this
 	err := s.run("command -v %s > /dev/null", command)
 
 	if err != nil {

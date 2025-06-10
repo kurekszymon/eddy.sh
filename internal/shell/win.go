@@ -8,8 +8,6 @@ import "errors"
 type ShellHandler struct{}
 
 func (s *ShellHandler) CheckCommand(command string) error {
-	// Windows does not have a direct equivalent to 'command -v'
-	// We can use 'where' to check if a command exists
 	err := s.run("where %s > NUL", command)
 
 	if err != nil {
