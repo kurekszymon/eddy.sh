@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [linux, darwin, windows]
+        os: [darwin, windows]
         arch: [amd64, arm64]
         exclude:
           - os: windows
@@ -30,16 +30,25 @@ jobs:
       - name: Install dependencies
         run: go mod tidy
 
+      - name: Set binary name
+        id: binary
+        run: |
+          NAME=eddy-${{ matrix.os }}-${{ matrix.arch }}
+          if [ "${{ matrix.os }}" = "windows" ]; then
+            NAME="${NAME}.exe"
+          fi
+          echo "BINARY_NAME=$NAME" >> $GITHUB_ENV
+
       - name: Build binary
         run: |
           mkdir -p dist
-          go build -o dist/eddy-${{ matrix.os }}-${{ matrix.arch }}
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o dist/$BINARY_NAME
 
       - name: Upload release assets
         uses: actions/upload-artifact@v3
         with:
-          name: eddy-${{ matrix.os }}-${{ matrix.arch }}
-          path: dist/eddy-${{ matrix.os }}-${{ matrix.arch }}
+          name: ${{ env.BINARY_NAME }}
+          path: dist/${{ env.BINARY_NAME }}
 
   release:
     name: Create GitHub Release
@@ -55,13 +64,12 @@ jobs:
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: dist/*
+          artifacts: dist/**/*
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body: |
             Automated release for eddy.sh.
             Includes builds for:
-            - Linux (amd64, arm64)
             - macOS (amd64, arm64)
             - Windows (amd64)
