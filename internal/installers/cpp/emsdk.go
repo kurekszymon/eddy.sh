@@ -20,7 +20,7 @@ func (c *Tools) brewEmsdk() error {
 	fmt.Println("Installing emscripten with brew...")
 	err := c.Shell.Brew("emscripten")
 	if err != nil {
-		return fmt.Errorf("failed to install emscripten: %w", err)
+		return err
 	}
 	fmt.Println("emscripten installed successfully")
 	return nil
@@ -37,7 +37,7 @@ func (c *Tools) manualEmsdk() error {
 	err = c.Shell.GitClone("https://github.com/emscripten-core/emsdk.git", c.CloneDir)
 
 	if err != nil {
-		return fmt.Errorf("failed to clone emscripten repository: %w", err)
+		return err
 	}
 
 	c.CloneDir = filepath.Join(c.CloneDir, "emsdk")
@@ -46,14 +46,14 @@ func (c *Tools) manualEmsdk() error {
 	err = c.Shell.RunScriptFileInDir("emsdk", c.CloneDir, "install", "latest")
 
 	if err != nil {
-		return fmt.Errorf("failed to run emscripten install script: %w", err)
+		return err
 	}
 
 	fmt.Println("Activating emscripten environment...")
 	err = c.Shell.RunScriptFileInDir("emsdk", c.CloneDir, "activate", "latest")
 
 	if err != nil {
-		return fmt.Errorf("failed to run emscripten activate script: %w", err)
+		return err
 	}
 
 	fmt.Println("SUCCESS: Emscripten installed successfully")

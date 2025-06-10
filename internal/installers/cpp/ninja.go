@@ -20,7 +20,7 @@ func (c *Tools) brewNinja() error {
 	fmt.Println("Installing ninja...")
 	err := c.Shell.Brew("ninja")
 	if err != nil {
-		return fmt.Errorf("failed to install ninja: %w", err)
+		return err
 	}
 	fmt.Println("ninja installed successfully")
 	return nil
@@ -43,7 +43,7 @@ func (c *Tools) manualNinja() error {
 	eddy_dir, err := c.Shell.GetEddyDir()
 
 	if err != nil {
-		return fmt.Errorf("failed to get eddy dir: %w", err)
+		return err
 	}
 
 	ninja_path := filepath.Join(eddy_dir, "ninja")

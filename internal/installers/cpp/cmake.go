@@ -20,7 +20,7 @@ func (c *Tools) brewCmake() error {
 	fmt.Println("Installing cmake using brew...")
 	err := c.Shell.Brew("cmake")
 	if err != nil {
-		return fmt.Errorf("failed to install cmake using brew: %w", err)
+		return err
 	}
 	fmt.Println("cmake installed successfully using brew")
 	return nil
@@ -37,9 +37,17 @@ func (c *Tools) manualCmake() error {
 		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/cmake-%s.tar.gz", c.Cmake.Version, c.Cmake.Version)
 	}
 
-	c.Shell.Curl(url)
+	err := c.Shell.Curl(url)
+	if err != nil {
+		return err
+	}
+
 	filename := filepath.Base(url)
-	c.Shell.Unzip(filename, "")
+
+	err = c.Shell.Unzip(filename, "")
+	if err != nil {
+		return err
+	}
 
 	fmt.Println("SUCCESS: CMake installed successfully")
 	return nil
