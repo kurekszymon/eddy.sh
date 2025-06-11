@@ -70,7 +70,7 @@ jobs:
           artifacts: dist/**/*
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           body: |
             Automated release for eddy.sh.
             Includes builds for:
