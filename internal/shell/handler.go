@@ -124,7 +124,7 @@ func (s *ShellHandler) run(command string, args ...string) error {
 		fmt.Println("DEBUG: Running command:", command)
 	}
 
-	cmd := exec.Command("sh", "-c", command)
+	cmd := exec.Command(command)
 	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
 	stdout, err := cmd.StdoutPipe()
 
