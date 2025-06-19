@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
 func (s *ShellHandler) GetEddyDir() (string, error) {
@@ -124,7 +125,13 @@ func (s *ShellHandler) run(command string, args ...string) error {
 		fmt.Println("DEBUG: Running command:", command)
 	}
 
-	cmd := exec.Command(command)
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd", "/c", command)
+	} else {
+		cmd = exec.Command("sh", "-c", command)
+	}
+
 	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
 	stdout, err := cmd.StdoutPipe()
 
