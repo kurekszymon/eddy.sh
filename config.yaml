@@ -1,22 +1,20 @@
---- 
-languages: 
+---
+languages:
   - cpp:
-    - emscripten: latest
-    - ninja: 1.12.1
-    - cmake: 3.27.0
-    - new_tool: 1.0.0
+      - emscripten: latest
+      - ninja: 1.12.1
+      - cmake: 3.27.0
   - javascript:
-    - nvm: latest
+      - nvm: latest
 
-git: 
+git:
   clone_dir: "~/repos/from_eddy"
-  repos: 
-    - http://github.com/facebook/react
+  repos:
+    - https://github.com/kurekszymon/eddy.sh
 
-
-custom_scripts: 
+custom_scripts:
   - configure_shell: echo "hello"
 
-platform: 
+platform:
   manual_installation: true # will install all tools manually (e.g. using curl)
   brew: false # if you care about specific versions, use manual install due to how brew is handling formulaes versions

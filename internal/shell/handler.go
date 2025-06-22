@@ -8,6 +8,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+
+	"github.com/kurekszymon/eddy.sh/internal/error_codes"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (s *ShellHandler) GetEddyDir() (string, error) {
@@ -34,12 +37,12 @@ func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
 
 	cloneDir = ExpandPath(filepath.Join(cloneDir, repoName))
 
-	err := s.run("git clone %s %s", repoURL, ExpandPath(cloneDir))
+	err := s.run("git clone --progress %s %s 2>&1", repoURL, ExpandPath(cloneDir))
 	if err != nil {
 		return fmt.Errorf("failed to clone repository %s into %s: %w", repoURL, cloneDir, err)
 	}
 
-	fmt.Printf("Successfully cloned %s into %s\n", repoURL, cloneDir)
+	fmt.Printf("-- Successfully cloned %s into %s\n", repoURL, cloneDir)
 	return nil
 }
 
@@ -95,6 +98,22 @@ func (s *ShellHandler) RunScriptFile(filename string) error {
 	if err != nil {
 		return fmt.Errorf("failed to run script file: %w", err)
 	}
+	return nil
+}
+
+func (s *ShellHandler) RunCustomScript(script string) error {
+	// potentially flag it in config / omit custom script checks
+
+	fmt.Printf("-- You are about to run custom command: %s \n", script)
+	utils.PromptConfirm("-- Custom script can potentially harm your system. Do you want to continue? (Y/N) ",
+		"-- ERROR: User aborted running custom script",
+		error_codes.CUSTOM_SCRIPT_EXIT)
+
+	err := s.run(script)
+	if err != nil {
+		return fmt.Errorf("-- failed to run custom script %s: %w", script, err)
+	}
+
 	return nil
 }
 
@@ -181,7 +200,7 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 			line, err := stdoutReader.ReadString('\n')
 			if err != nil {
 				if err != io.EOF {
-					fmt.Printf("Error reading stdout: %v\n", err)
+					fmt.Printf("-- Error reading stdout: %v\n", err)
 				}
 				close(stdoutChan)
 				return
@@ -200,7 +219,7 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 			line, err := stderrReader.ReadString('\n')
 			if err != nil {
 				if err != io.EOF {
-					fmt.Printf("Error reading stderr: %v\n", err)
+					fmt.Printf("-- Error reading stderr: %v\n", err)
 				}
 				close(stderrChan)
 				return
