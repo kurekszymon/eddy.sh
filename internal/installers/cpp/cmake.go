@@ -17,17 +17,17 @@ func (c *Tools) CmakeInstall() error {
 }
 
 func (c *Tools) brewCmake() error {
-	fmt.Println("Installing cmake using brew...")
+	fmt.Println("-- Installing cmake using brew...")
 	err := c.Shell.Brew("cmake")
 	if err != nil {
 		return err
 	}
-	fmt.Println("cmake installed successfully using brew")
+	fmt.Println("-- cmake installed successfully using brew")
 	return nil
 }
 
 func (c *Tools) manualCmake() error {
-	fmt.Println("Installing cmake using curl...")
+	fmt.Println("-- Installing cmake using curl...")
 
 	var url string
 	if runtime.GOOS == "windows" {
@@ -49,6 +49,6 @@ func (c *Tools) manualCmake() error {
 		return err
 	}
 
-	fmt.Println("SUCCESS: CMake installed successfully")
+	fmt.Println("-- SUCCESS: CMake installed successfully")
 	return nil
 }

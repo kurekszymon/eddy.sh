@@ -124,7 +124,7 @@ func (c *Config) Print() {
 	fmt.Printf("\nPlatform configuration:\n")
 	fmt.Printf(" - use brew: %t\n", c.Platform.Brew)
 	fmt.Printf(" - manual installation: %t\n", c.Platform.Manual)
-
+	fmt.Println()
 }
 
 func LoadConfig(filename string, shell *shell.ShellHandler) (*Config, error) {

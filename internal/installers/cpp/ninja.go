@@ -18,17 +18,17 @@ func (c *Tools) NinjaInstall() error {
 }
 
 func (c *Tools) brewNinja() error {
-	fmt.Println("Installing ninja...")
+	fmt.Println("-- Installing ninja...")
 	err := c.Shell.Brew("ninja")
 	if err != nil {
 		return err
 	}
-	fmt.Println("ninja installed successfully")
+	fmt.Println("-- ninja installed successfully")
 	return nil
 }
 
 func (c *Tools) manualNinja() error {
-	fmt.Println("Installing ninja manually...")
+	fmt.Println("-- Installing ninja manually...")
 	ninja_url := fmt.Sprintf("https://github.com/ninja-build/ninja/releases/download/v%s/%s ", c.Ninja.Version, globals.NINJA_DIRNAME)
 	err := c.Shell.Curl(ninja_url)
 	if err != nil {
@@ -50,6 +50,6 @@ func (c *Tools) manualNinja() error {
 	ninja_path := filepath.Join(eddy_dir, "ninja")
 	os.Chmod(ninja_path, 0755) // Ensure the file is executable
 
-	fmt.Println("SUCCESS: Ninja installed successfully at", ninja_path)
+	fmt.Println("-- SUCCESS: Ninja installed successfully at", ninja_path)
 	return nil
 }

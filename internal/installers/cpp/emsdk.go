@@ -17,12 +17,12 @@ func (c *Tools) EmscriptenInstall() error {
 }
 
 func (c *Tools) brewEmsdk() error {
-	fmt.Println("Installing emscripten with brew...")
+	fmt.Println("-- Installing emscripten with brew...")
 	err := c.Shell.Brew("emscripten")
 	if err != nil {
 		return err
 	}
-	fmt.Println("emscripten installed successfully")
+	fmt.Println("-- emscripten installed successfully")
 	return nil
 }
 
@@ -30,15 +30,15 @@ func (c *Tools) manualEmsdk() error {
 	err := c.Shell.CheckCommand("git")
 
 	if err != nil {
-		return errors.New("git is not installed, please install git to proceed with emscripten installation")
+		return errors.New("-- git is not installed, please install git to proceed with emscripten installation")
 	}
 
 	eddy_dir, err := c.Shell.GetEddyDir()
 	if err != nil {
-		return fmt.Errorf("failed to get eddy directory: %w", err)
+		return fmt.Errorf("-- failed to get eddy directory: %w", err)
 	}
 
-	fmt.Println("Cloning emscripten repository...")
+	fmt.Println("-- Cloning emscripten repository...")
 	err = c.Shell.GitClone("https://github.com/emscripten-core/emsdk.git", eddy_dir)
 
 	if err != nil {
@@ -47,21 +47,21 @@ func (c *Tools) manualEmsdk() error {
 
 	emsdk_dir := filepath.Join(eddy_dir, "emsdk")
 
-	fmt.Println("Running emscripten install script...")
+	fmt.Println("-- Running emscripten install script...")
 	err = c.Shell.RunScriptFileInDir("emsdk", emsdk_dir, "install", "latest")
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Activating emscripten environment...")
+	fmt.Println("-- Activating emscripten environment...")
 	err = c.Shell.RunScriptFileInDir("emsdk", emsdk_dir, "activate", "latest")
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("SUCCESS: Emscripten installed successfully")
+	fmt.Println("-- SUCCESS: Emscripten installed successfully")
 
 	return nil
 }
