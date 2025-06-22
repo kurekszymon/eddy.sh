@@ -50,6 +50,8 @@ func (c *Tools) manualNinja() error {
 	ninja_path := filepath.Join(eddy_dir, "ninja")
 	os.Chmod(ninja_path, 0755) // Ensure the file is executable
 
+	c.Shell.Symlink(ninja_path, "ninja")
+
 	fmt.Println("-- SUCCESS: Ninja installed successfully at", ninja_path)
 	return nil
 }

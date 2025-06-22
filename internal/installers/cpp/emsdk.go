@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/types"
 )
@@ -59,6 +60,21 @@ func (c *Tools) manualEmsdk() error {
 
 	if err != nil {
 		return err
+	}
+
+	fmt.Println("-- Creating symlinks for emscripten...")
+
+	if runtime.GOOS == "windows" {
+		c.Shell.Symlink(emsdk_dir, "emsdk.sh")
+		c.Shell.Symlink(emsdk_dir, "emsdk.bat")
+		c.Shell.Symlink(emsdk_dir, "emsdk.ps1")
+		c.Shell.Symlink(emsdk_dir, "emsdk_env.ps1")
+		c.Shell.Symlink(emsdk_dir, "emsdk_env.bat")
+		c.Shell.Symlink(emsdk_dir, "emsdk_env.sh")
+
+	} else {
+		c.Shell.Symlink(emsdk_dir, "emsdk")
+		c.Shell.Symlink(emsdk_dir, "emsdk_env.sh")
 	}
 
 	fmt.Println("-- SUCCESS: Emscripten installed successfully")

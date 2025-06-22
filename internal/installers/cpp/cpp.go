@@ -47,7 +47,6 @@ func (c *Tools) Install() {
 	if c.Emscripten != nil {
 		if err := c.Emscripten.Install(); err != nil {
 			errors["Emscripten"] = err
-
 		}
 	}
 

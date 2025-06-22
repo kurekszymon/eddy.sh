@@ -28,13 +28,18 @@ func (c *Tools) brewCmake() error {
 
 func (c *Tools) manualCmake() error {
 	fmt.Println("-- Installing cmake using curl...")
-
+	var cmake_dir string
+	var cmake_bin_path string
 	var url string
 	if runtime.GOOS == "windows" {
-		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/cmake-%s.zip", c.Cmake.Version, c.Cmake.Version)
+		cmake_dir = fmt.Sprintf("cmake-%s-windows-arm64", c.Cmake.Version)
+		cmake_bin_path = filepath.Join(cmake_dir, "bin")
 
+		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.zip", c.Cmake.Version, cmake_dir)
 	} else {
-		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/cmake-%s.tar.gz", c.Cmake.Version, c.Cmake.Version)
+		cmake_dir = fmt.Sprintf("cmake-%s-macos-universal", c.Cmake.Version)
+		cmake_bin_path = filepath.Join(cmake_dir, "Cmake.app", "Contents", "bin")
+		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.tar.gz", c.Cmake.Version, cmake_dir)
 	}
 
 	err := c.Shell.Curl(url)
@@ -48,6 +53,21 @@ func (c *Tools) manualCmake() error {
 	if err != nil {
 		return err
 	}
+
+	eddy_dir, err := c.Shell.GetEddyDir()
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("-- Creating symlinks for cmake...")
+
+	cmake_bin := filepath.Join(eddy_dir, cmake_bin_path)
+
+	c.Shell.Symlink(filepath.Join(cmake_bin, "cmake"), "cmake")
+	c.Shell.Symlink(filepath.Join(cmake_bin, "cpack"), "cpack")
+	c.Shell.Symlink(filepath.Join(cmake_bin, "ctest"), "ctest")
+	c.Shell.Symlink(filepath.Join(cmake_bin, "ccmake"), "ccmake")
 
 	fmt.Println("-- SUCCESS: CMake installed successfully")
 	return nil

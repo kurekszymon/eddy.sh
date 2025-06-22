@@ -7,6 +7,7 @@ import (
 
 	"github.com/kurekszymon/eddy.sh/internal/installers"
 	"github.com/kurekszymon/eddy.sh/internal/installers/cpp"
+	"github.com/kurekszymon/eddy.sh/internal/installers/javascript"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 	"github.com/kurekszymon/eddy.sh/internal/types"
 	"gopkg.in/yaml.v3"
@@ -14,7 +15,7 @@ import (
 
 type Installers struct {
 	Cpp        *cpp.Tools
-	Javascript *installers.JsTools
+	Javascript *javascript.Tools
 	Tools      *installers.Tools
 }
 
@@ -41,7 +42,7 @@ func (c *Config) Process(shell *shell.ShellHandler) {
 
 	c.Installers = &Installers{
 		Cpp:        &cpp.Tools{Shell: shell, PkgManager: c.PkgManager, CloneDir: c.Git.CloneDir},
-		Javascript: &installers.JsTools{Shell: shell},
+		Javascript: &javascript.Tools{Shell: shell},
 		Tools:      &installers.Tools{Shell: shell},
 	}
 
