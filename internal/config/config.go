@@ -42,7 +42,7 @@ func (c *Config) Process(shell *shell.ShellHandler) {
 
 	c.Installers = &Installers{
 		Cpp:        &cpp.Tools{Shell: shell, PkgManager: c.PkgManager, CloneDir: c.Git.CloneDir},
-		Javascript: &javascript.Tools{Shell: shell},
+		Javascript: &javascript.Tools{Shell: shell, PkgManager: c.PkgManager},
 		Tools:      &installers.Tools{Shell: shell},
 	}
 

@@ -75,5 +75,9 @@ func main() {
 	}
 
 	cpp := config.Installers.Cpp
-	cpp.Install() // maybe should have "print errors" method to print all errors at the end
+	cpp.Install() // install now returns a map of errors, utilize this.
+
+	js := config.Installers.Javascript
+	js.Install()
+
 }

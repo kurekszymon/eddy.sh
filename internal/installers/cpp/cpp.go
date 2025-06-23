@@ -41,7 +41,7 @@ func (c *Tools) SetTool(toolName string, tool *installers.Tool) {
 
 }
 
-func (c *Tools) Install() {
+func (c *Tools) Install() map[string]error {
 	errors := make(map[string]error)
 
 	if c.Emscripten != nil {
@@ -67,4 +67,5 @@ func (c *Tools) Install() {
 			fmt.Printf("Error installing %s: %v\n", toolName, err)
 		}
 	}
+	return errors
 }
