@@ -81,4 +81,5 @@ func main() {
 	js := config.Installers.Javascript
 	js.Install()
 
+	utils.Log("Please remember to add ~/.eddy.sh/bin to your PATH to access tools installed in the process.", types.LogWarning)
 }

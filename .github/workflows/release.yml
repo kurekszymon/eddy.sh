@@ -37,6 +37,9 @@ jobs:
           if [ "${{ matrix.os }}" = "windows" ]; then
             NAME="${NAME}.exe"
           fi
+          if [ "${{ matrix.os }}" = "darwin" ]; then
+            NAME="${NAME}.sh"
+          fi
           echo "BINARY_NAME=$NAME" >> $GITHUB_ENV
 
       - name: Build binary

@@ -72,6 +72,7 @@ func (c *Tools) manualEmsdk() error {
 
 	} else {
 		c.Shell.Symlink(emsdk_dir, "emsdk")
+		c.Shell.Symlink(emsdk_dir, "emsdk.sh")
 		c.Shell.Symlink(emsdk_dir, "emsdk_env.sh")
 	}
 
