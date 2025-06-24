@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) NvmInstall() error {
@@ -21,12 +22,12 @@ func (c *Tools) NvmInstall() error {
 }
 
 func (c *Tools) brewNvm() error {
-	fmt.Println("Note: NVM is not available via Homebrew. It will be installed manually.")
+	utils.Log("Note: NVM is not available via Homebrew. It will be installed manually.", types.LogWarning)
 	return c.manualNvm()
 }
 
 func (c *Tools) manualNvm() error {
-	fmt.Println("-- Installing NVM manually...")
+	utils.Log("Downloading NVM version "+c.Nvm.Version, types.LogInfo)
 
 	nvm_url := fmt.Sprintf("https://raw.githubusercontent.com/nvm-sh/nvm/v%s/install.sh", c.Nvm.Version)
 	err := c.Shell.Curl(nvm_url)
@@ -36,12 +37,12 @@ func (c *Tools) manualNvm() error {
 
 	eddy_dir, err := c.Shell.GetEddyDir()
 	if err != nil {
-		return fmt.Errorf("failed to get eddy directory: %w", err)
+		return err
 	}
 
 	err = c.Shell.RunScriptFileInDir("install.sh", eddy_dir)
 	if err != nil {
-		return fmt.Errorf("failed to run NVM install script: %w", err)
+		return err
 	}
 
 	return nil

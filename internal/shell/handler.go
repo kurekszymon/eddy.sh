@@ -10,6 +10,7 @@ import (
 	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/error_codes"
+	"github.com/kurekszymon/eddy.sh/internal/types"
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
@@ -42,20 +43,21 @@ func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
 		return fmt.Errorf("failed to clone repository %s into %s: %w", repoURL, cloneDir, err)
 	}
 
-	fmt.Printf("-- Successfully cloned %s into %s\n", repoURL, cloneDir)
+	message := fmt.Sprintf("-- Successfully cloned %s into %s\n", repoURL, cloneDir)
+	utils.Log(message, types.LogInfo)
 	return nil
 }
 
 func (s *ShellHandler) Curl(url string) error {
 	eddyDir, err := s.GetEddyDir()
 	if err != nil {
-		return fmt.Errorf("failed to get eddy dir: %w", err)
+		return err
 	}
 
 	command := fmt.Sprintf("curl -fL --output-dir %s -O %s", eddyDir, url)
 	err = s.run(command)
 	if err != nil {
-		return fmt.Errorf("failed to run curl: %w", err)
+		return err
 	}
 	return nil
 }
@@ -63,7 +65,7 @@ func (s *ShellHandler) Curl(url string) error {
 func (s *ShellHandler) Echo(message string) error {
 	err := s.run("echo %s", message)
 	if err != nil {
-		return fmt.Errorf("failed to echo %s: %w", message, err)
+		return err
 	}
 	return nil
 }
@@ -71,14 +73,14 @@ func (s *ShellHandler) Echo(message string) error {
 func (s *ShellHandler) Unzip(filename string, target_dir string) error {
 	eddyDir, err := s.GetEddyDir()
 	if err != nil {
-		return fmt.Errorf("failed to get eddy dir: %w", err)
+		return err
 	}
 
 	filename = filepath.Join(eddyDir, filename)
 	target_dir = filepath.Join(eddyDir, target_dir)
 	err = s.ensureDir(target_dir)
 	if err != nil {
-		return fmt.Errorf("failed to create target directory %s: %w", target_dir, err)
+		return err
 	}
 
 	err = s.run("tar -xf %s -C %s", filename, target_dir)
@@ -96,7 +98,7 @@ func (s *ShellHandler) RunScriptFile(filename string) error {
 
 	err := s.run(filename)
 	if err != nil {
-		return fmt.Errorf("failed to run script file: %w", err)
+		return err
 	}
 	return nil
 }
@@ -104,7 +106,8 @@ func (s *ShellHandler) RunScriptFile(filename string) error {
 func (s *ShellHandler) RunCustomScript(script string) error {
 	// potentially flag it in config / omit custom script checks
 
-	fmt.Printf("-- You are about to run custom command: %s \n", script)
+	message := fmt.Sprintf("-- You are about to run custom command: %s \n", script)
+	utils.Log(message, types.LogWarning)
 	utils.PromptConfirm("-- Custom script can potentially harm your system. Do you want to continue? (Y/N) ",
 		"-- ERROR: User aborted running custom script",
 		error_codes.CUSTOM_SCRIPT_EXIT)
@@ -141,7 +144,7 @@ func (s *ShellHandler) run(command string, args ...string) error {
 	command = FormatArgs(command, args)
 
 	if DebugEnabled {
-		fmt.Println("DEBUG: Running command:", command)
+		utils.Log("Running command: "+command, types.LogDebug)
 	}
 
 	var cmd *exec.Cmd
@@ -200,14 +203,15 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 			line, err := stdoutReader.ReadString('\n')
 			if err != nil {
 				if err != io.EOF {
-					fmt.Printf("-- Error reading stdout: %v\n", err)
+					utils.Log("Error reading from stdout", types.LogError)
 				}
 				close(stdoutChan)
 				return
 			}
 
 			if DebugEnabled {
-				line = "DEBUG stdout: " + line
+				line = utils.FormatLogType(line, types.LogDebug)
+
 			}
 			stdoutChan <- line
 		}
@@ -219,13 +223,13 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 			line, err := stderrReader.ReadString('\n')
 			if err != nil {
 				if err != io.EOF {
-					fmt.Printf("-- Error reading stderr: %v\n", err)
+					utils.Log("Error reading from stderr", types.LogError)
 				}
 				close(stderrChan)
 				return
 			}
 			if DebugEnabled {
-				line = "DEBUG: stderr: " + line
+				line = utils.FormatLogType(line, types.LogDebug)
 			}
 			stderrChan <- line
 		}

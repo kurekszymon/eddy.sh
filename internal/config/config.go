@@ -83,6 +83,7 @@ func (c *Config) Process(shell *shell.ShellHandler) {
 }
 
 func (c *Config) Print() {
+	// do it nicely
 	fmt.Printf("C++ Configuration:\n")
 
 	if c.Installers.Cpp.Emscripten != nil {

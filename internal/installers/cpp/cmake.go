@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) CmakeInstall() error {
@@ -17,17 +18,17 @@ func (c *Tools) CmakeInstall() error {
 }
 
 func (c *Tools) brewCmake() error {
-	fmt.Println("-- Installing cmake using brew...")
+	utils.Log("Installing cmake using brew", types.LogInfo)
 	err := c.Shell.Brew("cmake")
 	if err != nil {
 		return err
 	}
-	fmt.Println("-- cmake installed successfully using brew")
+	utils.Log("CMake installed successfully", types.LogInfo)
 	return nil
 }
 
 func (c *Tools) manualCmake() error {
-	fmt.Println("-- Installing cmake using curl...")
+	utils.Log("Installing CMake manually", types.LogInfo)
 	var cmake_dir string
 	var cmake_bin_path string
 	var url string
@@ -48,19 +49,15 @@ func (c *Tools) manualCmake() error {
 	}
 
 	filename := filepath.Base(url)
-
 	err = c.Shell.Unzip(filename, "")
 	if err != nil {
 		return err
 	}
 
 	eddy_dir, err := c.Shell.GetEddyDir()
-
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("-- Creating symlinks for cmake...")
 
 	cmake_bin := filepath.Join(eddy_dir, cmake_bin_path)
 
@@ -69,6 +66,6 @@ func (c *Tools) manualCmake() error {
 	c.Shell.Symlink(filepath.Join(cmake_bin, "ctest"), "ctest")
 	c.Shell.Symlink(filepath.Join(cmake_bin, "ccmake"), "ccmake")
 
-	fmt.Println("-- SUCCESS: CMake installed successfully")
+	utils.Log("CMake installed successfully", types.LogInfo)
 	return nil
 }

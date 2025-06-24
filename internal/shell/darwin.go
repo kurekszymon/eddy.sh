@@ -6,6 +6,9 @@ package shell
 import (
 	"fmt"
 	"path/filepath"
+
+	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 type ShellHandler struct{}
@@ -43,6 +46,7 @@ func (s *ShellHandler) Symlink(source string, dest string) error {
 
 	link_dir := filepath.Join(eddy_bin, dest)
 
+	utils.Log("Creating symlink for "+dest, types.LogInfo)
 	s.run("ln -s %s %s", source, link_dir)
 	return nil
 }

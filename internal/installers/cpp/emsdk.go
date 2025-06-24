@@ -2,11 +2,11 @@ package cpp
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) EmscriptenInstall() error {
@@ -18,12 +18,12 @@ func (c *Tools) EmscriptenInstall() error {
 }
 
 func (c *Tools) brewEmsdk() error {
-	fmt.Println("-- Installing emscripten with brew...")
+	utils.Log("Installing emscripten using brew", types.LogInfo)
 	err := c.Shell.Brew("emscripten")
 	if err != nil {
 		return err
 	}
-	fmt.Println("-- emscripten installed successfully")
+	utils.Log("Emscripten installed successfully", types.LogInfo)
 	return nil
 }
 
@@ -31,15 +31,15 @@ func (c *Tools) manualEmsdk() error {
 	err := c.Shell.CheckCommand("git")
 
 	if err != nil {
-		return errors.New("-- git is not installed, please install git to proceed with emscripten installation")
+		return errors.New(utils.FormatLogType("git is not installed. Please install git before proceeding with emscripten installation", types.LogError))
 	}
 
 	eddy_dir, err := c.Shell.GetEddyDir()
 	if err != nil {
-		return fmt.Errorf("-- failed to get eddy directory: %w", err)
+		return err
 	}
 
-	fmt.Println("-- Cloning emscripten repository...")
+	utils.Log("Cloning emscripten repository", types.LogInfo)
 	err = c.Shell.GitClone("https://github.com/emscripten-core/emsdk.git", eddy_dir)
 
 	if err != nil {
@@ -48,21 +48,19 @@ func (c *Tools) manualEmsdk() error {
 
 	emsdk_dir := filepath.Join(eddy_dir, "emsdk")
 
-	fmt.Println("-- Running emscripten install script...")
+	utils.Log("Running `emscripten install latest`", types.LogInfo)
 	err = c.Shell.RunScriptFileInDir("emsdk", emsdk_dir, "install", "latest")
 
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("-- Activating emscripten environment...")
+	utils.Log("Running `emscripten activate latest`", types.LogInfo)
 	err = c.Shell.RunScriptFileInDir("emsdk", emsdk_dir, "activate", "latest")
 
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("-- Creating symlinks for emscripten...")
 
 	if runtime.GOOS == "windows" {
 		c.Shell.Symlink(emsdk_dir, "emsdk.sh")
@@ -77,7 +75,7 @@ func (c *Tools) manualEmsdk() error {
 		c.Shell.Symlink(emsdk_dir, "emsdk_env.sh")
 	}
 
-	fmt.Println("-- SUCCESS: Emscripten installed successfully")
+	utils.Log("Emscripten installed successfully", types.LogInfo)
 
 	return nil
 }

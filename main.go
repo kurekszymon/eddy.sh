@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/kurekszymon/eddy.sh/internal/config"
 	"github.com/kurekszymon/eddy.sh/internal/error_codes"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
+	"github.com/kurekszymon/eddy.sh/internal/types"
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
@@ -16,36 +16,37 @@ func main() {
 	config, err := config.LoadConfig("config.yaml", handler)
 	if err != nil {
 		// TODO: handle no config - generate sample
-		fmt.Printf("-- Failed to load config: %v", err)
+		utils.Log("Failed to load config, please check the config file or generate a new one.", types.LogError)
 		os.Exit(error_codes.NO_CONFIG)
 	}
 
 	config.Print()
 
 	utils.PromptConfirm("Do you want to proceed with this configuration: (Y/N) ", "ERROR: Failed to load config (user aborted)", error_codes.WRONG_CONFIG)
-	fmt.Println("-- Proceeding with the installation...")
+	utils.Log("Proceeding with the installation...", types.LogInfo)
 
 	if config.Platform.Brew {
-		fmt.Println("-- Checking for brew...")
+		utils.Log("Checking for brew...", types.LogInfo)
 		err = handler.CheckCommand("brew")
 		if err != nil {
-			fmt.Println("-- Brew is not installed. Installing brew...")
+			utils.Log("Brew is not installed. Installing brew...", types.LogWarning)
 			err = config.Installers.Tools.Brew.Install()
 			if err != nil {
-				fmt.Printf("ERROR: Failed to install brew: %v", err)
-				fmt.Printf("Please try to install brew manually or specify manual installation in config.: %v", err)
+				utils.Log("Failed to install brew", types.LogError)
+				utils.Log("Please try to install brew manually or specify manual installation in config.", types.LogWarning)
 				os.Exit(error_codes.BREW_SPECIFIED_BUT_NOT_INSTALLED)
 			}
 		}
-		fmt.Println("-- Brew is installed and will be used for installation.")
+		utils.Log("Brew is installed and will be used for installation.", types.LogInfo)
 	}
 
+	utils.Log("Checking for git...", types.LogInfo)
 	err = handler.CheckCommand("git")
 	if err != nil {
-		fmt.Println("-- Git is not installed. Installing git...")
+		utils.Log("Git is not installed. Installing git...", types.LogWarning)
 		err = config.Installers.Tools.Git.Install()
 		if err != nil {
-			fmt.Printf("-- ERROR: Failed to install git: %v", err)
+			utils.Log("Failed to install git", types.LogError)
 			os.Exit(error_codes.NO_GIT)
 		}
 	}
@@ -54,10 +55,10 @@ func main() {
 	repos := config.Git.Repos
 	if len(repos) > 0 {
 		for _, repo := range repos {
-			fmt.Printf("Cloning repository: %s\n", repo)
+			utils.Log("Cloning repository: "+repo, types.LogInfo)
 			err = handler.GitClone(repo, config.Git.CloneDir)
 			if err != nil {
-				fmt.Println(err)
+				utils.Log("Failed to clone repository: "+repo, types.LogError)
 			}
 		}
 	}
@@ -66,10 +67,10 @@ func main() {
 	custom_scripts := config.Scripts
 	if len(custom_scripts) > 0 {
 		for _, script := range custom_scripts {
-			fmt.Println("-- Running custom script:", script.Name)
+			utils.Log("Running custom script: "+script.Name, types.LogInfo)
 			err = handler.RunCustomScript(script.Command)
 			if err != nil {
-				fmt.Println(err)
+				utils.Log("Failed to run custom script: "+script.Name, types.LogError)
 			}
 		}
 	}

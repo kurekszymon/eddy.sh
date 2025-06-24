@@ -7,6 +7,7 @@ import (
 
 	"github.com/kurekszymon/eddy.sh/internal/globals"
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) NinjaInstall() error {
@@ -18,17 +19,18 @@ func (c *Tools) NinjaInstall() error {
 }
 
 func (c *Tools) brewNinja() error {
-	fmt.Println("-- Installing ninja...")
+	utils.Log("Installing ninja using brew", types.LogInfo)
 	err := c.Shell.Brew("ninja")
 	if err != nil {
 		return err
 	}
-	fmt.Println("-- ninja installed successfully")
+	utils.Log("Ninja installed successfully", types.LogInfo)
 	return nil
 }
 
 func (c *Tools) manualNinja() error {
-	fmt.Println("-- Installing ninja manually...")
+	utils.Log("Downloading ninja version "+c.Ninja.Version, types.LogInfo)
+
 	ninja_url := fmt.Sprintf("https://github.com/ninja-build/ninja/releases/download/v%s/%s ", c.Ninja.Version, globals.NINJA_DIRNAME)
 	err := c.Shell.Curl(ninja_url)
 	if err != nil {
@@ -36,22 +38,20 @@ func (c *Tools) manualNinja() error {
 	}
 
 	err = c.Shell.Unzip(globals.NINJA_DIRNAME, "")
-
 	if err != nil {
 		return err
 	}
 
 	eddy_dir, err := c.Shell.GetEddyDir()
-
 	if err != nil {
 		return err
 	}
 
 	ninja_path := filepath.Join(eddy_dir, "ninja")
-	os.Chmod(ninja_path, 0755) // Ensure the file is executable
+	os.Chmod(ninja_path, 0755)
 
 	c.Shell.Symlink(ninja_path, "ninja")
 
-	fmt.Println("-- SUCCESS: Ninja installed successfully at", ninja_path)
+	utils.Log("Ninja installed successfully", types.LogInfo)
 	return nil
 }

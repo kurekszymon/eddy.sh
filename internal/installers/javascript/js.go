@@ -7,6 +7,7 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/installers"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 type Tools struct {
@@ -41,7 +42,8 @@ func (c *Tools) Install() map[string]error {
 
 	if len(errors) > 0 {
 		for toolName, err := range errors {
-			fmt.Printf("Error installing %s: %v\n", toolName, err)
+			message := fmt.Sprintf("Error installing %s: %v\n", toolName, err)
+			utils.Log(message, types.LogError)
 		}
 	}
 
