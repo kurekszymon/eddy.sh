@@ -6,8 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kurekszymon/eddy.sh/internal/types"
-	"github.com/kurekszymon/eddy.sh/internal/utils"
+	"github.com/kurekszymon/eddy.sh/internal/logger"
 )
 
 var DebugEnabled = strings.EqualFold(os.Getenv("EDDY_DEBUG"), "1")
@@ -16,7 +15,7 @@ func ExpandPath(path string) string {
 	if strings.HasPrefix(path, "~") {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			utils.Log("Failed to get user home directory: "+err.Error(), types.LogError)
+			logger.Error("Failed to get user home directory: " + err.Error())
 			return path
 		}
 		return filepath.Join(home, path[2:])

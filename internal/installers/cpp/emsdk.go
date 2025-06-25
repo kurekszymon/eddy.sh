@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
-	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) EmscriptenInstall() error {
@@ -18,12 +18,12 @@ func (c *Tools) EmscriptenInstall() error {
 }
 
 func (c *Tools) brewEmsdk() error {
-	utils.Log("Installing emscripten using brew", types.LogInfo)
+	logger.Info("Installing emscripten using brew")
 	err := c.Shell.Brew("emscripten")
 	if err != nil {
 		return err
 	}
-	utils.Log("Emscripten installed successfully", types.LogInfo)
+	logger.Info("Emscripten installed successfully")
 	return nil
 }
 
@@ -31,7 +31,7 @@ func (c *Tools) manualEmsdk() error {
 	err := c.Shell.CheckCommand("git")
 
 	if err != nil {
-		return errors.New(utils.FormatLogType("git is not installed. Please install git before proceeding with emscripten installation", types.LogError))
+		return errors.New("git is not installed. Please install git before proceeding with emscripten installation")
 	}
 
 	eddy_dir, err := c.Shell.GetEddyDir()
@@ -39,7 +39,7 @@ func (c *Tools) manualEmsdk() error {
 		return err
 	}
 
-	utils.Log("Cloning emscripten repository", types.LogInfo)
+	logger.Info("Cloning emscripten repository")
 	err = c.Shell.GitClone("https://github.com/emscripten-core/emsdk.git", eddy_dir)
 
 	if err != nil {
@@ -48,14 +48,14 @@ func (c *Tools) manualEmsdk() error {
 
 	emsdk_dir := filepath.Join(eddy_dir, "emsdk")
 
-	utils.Log("Running `emscripten install latest`", types.LogInfo)
+	logger.Info("Running `emscripten install latest`")
 	err = c.Shell.RunScriptFileInDir("emsdk", emsdk_dir, "install", "latest")
 
 	if err != nil {
 		return err
 	}
 
-	utils.Log("Running `emscripten activate latest`", types.LogInfo)
+	logger.Info("Running `emscripten activate latest`")
 	err = c.Shell.RunScriptFileInDir("emsdk", emsdk_dir, "activate", "latest")
 
 	if err != nil {
@@ -76,7 +76,7 @@ func (c *Tools) manualEmsdk() error {
 		c.Shell.Symlink(emsdk_dir, "emsdk_env.sh")
 	}
 
-	utils.Log("Emscripten installed successfully", types.LogInfo)
+	logger.Info("Emscripten installed successfully")
 
 	return nil
 }

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
-	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) CmakeInstall() error {
@@ -18,17 +18,17 @@ func (c *Tools) CmakeInstall() error {
 }
 
 func (c *Tools) brewCmake() error {
-	utils.Log("Installing cmake using brew", types.LogInfo)
+	logger.Info("Installing cmake using brew")
 	err := c.Shell.Brew("cmake")
 	if err != nil {
 		return err
 	}
-	utils.Log("CMake installed successfully", types.LogInfo)
+	logger.Info("CMake installed successfully")
 	return nil
 }
 
 func (c *Tools) manualCmake() error {
-	utils.Log("Installing CMake manually", types.LogInfo)
+	logger.Info("Installing CMake manually")
 	var cmake_dir string
 	var cmake_bin_path string
 	var url string
@@ -66,6 +66,6 @@ func (c *Tools) manualCmake() error {
 	c.Shell.Symlink(filepath.Join(cmake_bin, "ctest"), "ctest")
 	c.Shell.Symlink(filepath.Join(cmake_bin, "ccmake"), "ccmake")
 
-	utils.Log("CMake installed successfully", types.LogInfo)
+	logger.Info("CMake installed successfully")
 	return nil
 }

@@ -10,7 +10,7 @@ import (
 	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/error_codes"
-	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
@@ -43,8 +43,8 @@ func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
 		return fmt.Errorf("failed to clone repository %s into %s: %w", repoURL, cloneDir, err)
 	}
 
-	message := fmt.Sprintf("-- Successfully cloned %s into %s\n", repoURL, cloneDir)
-	utils.Log(message, types.LogInfo)
+	message := fmt.Sprintf("Successfully cloned %s into %s\n", repoURL, cloneDir)
+	logger.Info(message)
 	return nil
 }
 
@@ -107,7 +107,7 @@ func (s *ShellHandler) RunCustomScript(script string) error {
 	// potentially flag it in config / omit custom script checks
 
 	message := fmt.Sprintf("-- You are about to run custom command: %s \n", script)
-	utils.Log(message, types.LogWarning)
+	logger.Warn(message)
 	utils.PromptConfirm("-- Custom script can potentially harm your system. Do you want to continue? (Y/N) ",
 		"-- ERROR: User aborted running custom script",
 		error_codes.CUSTOM_SCRIPT_EXIT)
@@ -144,7 +144,7 @@ func (s *ShellHandler) run(command string, args ...string) error {
 	command = FormatArgs(command, args)
 
 	if DebugEnabled {
-		utils.Log("Running command: "+command, types.LogDebug)
+		logger.Debug("Running command: " + command)
 	}
 
 	var cmd *exec.Cmd
@@ -203,15 +203,14 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 			line, err := stdoutReader.ReadString('\n')
 			if err != nil {
 				if err != io.EOF {
-					utils.Log("Error reading from stdout", types.LogError)
+					logger.Error("Error reading from stdout")
 				}
 				close(stdoutChan)
 				return
 			}
 
 			if DebugEnabled {
-				line = utils.FormatLogType(line, types.LogDebug)
-
+				line = logger.FormatLogType(line, logger.LogDebug)
 			}
 			stdoutChan <- line
 		}
@@ -223,13 +222,13 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 			line, err := stderrReader.ReadString('\n')
 			if err != nil {
 				if err != io.EOF {
-					utils.Log("Error reading from stderr", types.LogError)
+					logger.Info("Error reading from stderr")
 				}
 				close(stderrChan)
 				return
 			}
 			if DebugEnabled {
-				line = utils.FormatLogType(line, types.LogDebug)
+				line = logger.FormatLogType(line, logger.LogDebug)
 			}
 			stderrChan <- line
 		}

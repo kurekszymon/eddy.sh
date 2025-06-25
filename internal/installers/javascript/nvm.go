@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
-	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) NvmInstall() error {
@@ -22,12 +22,12 @@ func (c *Tools) NvmInstall() error {
 }
 
 func (c *Tools) brewNvm() error {
-	utils.Log("Note: NVM is not available via Homebrew. It will be installed manually.", types.LogWarning)
+	logger.Warn("Note: NVM is not available via Homebrew. It will be installed manually.")
 	return c.manualNvm()
 }
 
 func (c *Tools) manualNvm() error {
-	utils.Log("Downloading NVM version "+c.Nvm.Version, types.LogInfo)
+	logger.Info("Downloading NVM version " + c.Nvm.Version)
 
 	nvm_url := fmt.Sprintf("https://raw.githubusercontent.com/nvm-sh/nvm/v%s/install.sh", c.Nvm.Version)
 	err := c.Shell.Curl(nvm_url)

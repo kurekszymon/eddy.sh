@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/kurekszymon/eddy.sh/internal/globals"
+	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
-	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) NinjaInstall() error {
@@ -19,17 +19,17 @@ func (c *Tools) NinjaInstall() error {
 }
 
 func (c *Tools) brewNinja() error {
-	utils.Log("Installing ninja using brew", types.LogInfo)
+	logger.Info("Installing ninja using brew")
 	err := c.Shell.Brew("ninja")
 	if err != nil {
 		return err
 	}
-	utils.Log("Ninja installed successfully", types.LogInfo)
+	logger.Info("Ninja installed successfully")
 	return nil
 }
 
 func (c *Tools) manualNinja() error {
-	utils.Log("Downloading ninja version "+c.Ninja.Version, types.LogInfo)
+	logger.Info("Downloading ninja version " + c.Ninja.Version)
 
 	ninja_url := fmt.Sprintf("https://github.com/ninja-build/ninja/releases/download/v%s/%s ", c.Ninja.Version, globals.NINJA_DIRNAME)
 	err := c.Shell.Curl(ninja_url)
@@ -52,6 +52,6 @@ func (c *Tools) manualNinja() error {
 
 	c.Shell.Symlink(ninja_path, "ninja")
 
-	utils.Log("Ninja installed successfully", types.LogInfo)
+	logger.Info("Ninja installed successfully")
 	return nil
 }
