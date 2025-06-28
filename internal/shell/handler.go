@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/kurekszymon/eddy.sh/internal/error_codes"
+	"github.com/kurekszymon/eddy.sh/internal/exit_codes"
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
@@ -106,15 +106,15 @@ func (s *ShellHandler) RunScriptFile(filename string) error {
 func (s *ShellHandler) RunCustomScript(script string) error {
 	// potentially flag it in config / omit custom script checks
 
-	message := fmt.Sprintf("-- You are about to run custom command: %s \n", script)
+	message := fmt.Sprintf("You are about to run custom command: %s", script)
 	logger.Warn(message)
-	utils.PromptConfirm("-- Custom script can potentially harm your system. Do you want to continue? (Y/N) ",
-		"-- ERROR: User aborted running custom script",
-		error_codes.CUSTOM_SCRIPT_EXIT)
+	utils.PromptConfirm("Custom script can potentially harm your system. Do you want to continue? (Y/N) ",
+		"ERROR: User aborted running custom script",
+		exit_codes.CUSTOM_SCRIPT_EXIT)
 
 	err := s.run(script)
 	if err != nil {
-		return fmt.Errorf("-- failed to run custom script %s: %w", script, err)
+		return fmt.Errorf("failed to run custom script %s: %w", script, err)
 	}
 
 	return nil
@@ -125,9 +125,9 @@ func (s *ShellHandler) RunScriptFileInDir(filename string, dir string, args ...s
 
 	os.Chmod(scriptPath, 0755)
 
-	// hack to run script with all the args passed to it
 	command := scriptPath
 	for _, arg := range args {
+		// hack to run script with all the args passed to it
 		command = fmt.Sprintf("%s %s", command, arg)
 	}
 

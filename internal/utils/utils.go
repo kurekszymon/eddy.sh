@@ -8,7 +8,8 @@ import (
 )
 
 func PromptConfirm(prompt string, error_message string, codes ...int) {
-	fmt.Print(prompt)
+	logger.Prompt(prompt)
+	logger.Prompt("Press [Y] or [y] to continue")
 
 	var i string
 	fmt.Scan(&i)

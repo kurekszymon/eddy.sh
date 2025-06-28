@@ -3,8 +3,10 @@ package main
 import (
 	"os"
 
+	"github.com/kurekszymon/eddy.sh/internal/cli"
 	"github.com/kurekszymon/eddy.sh/internal/config"
-	"github.com/kurekszymon/eddy.sh/internal/error_codes"
+	"github.com/kurekszymon/eddy.sh/internal/exit_codes"
+	"github.com/kurekszymon/eddy.sh/internal/globals"
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 	"github.com/kurekszymon/eddy.sh/internal/utils"
@@ -13,16 +15,17 @@ import (
 func main() {
 	handler := &shell.ShellHandler{}
 
-	config, err := config.LoadConfig("config.yaml", handler)
+	config, err := config.LoadConfig(handler)
 	if err != nil {
-		// TODO: handle no config - generate sample
-		logger.Error("Failed to load config, please check the config file or generate a new one.")
-		os.Exit(error_codes.NO_CONFIG)
+		logger.Error("Failed to load config, please check ~/.eddy.sh" + globals.CONFIG_FILE)
+		os.Exit(exit_codes.WRONG_CONFIG)
 	}
+
+	cli.HandleArgs(handler, config)
 
 	config.Print()
 
-	utils.PromptConfirm("Do you want to proceed with this configuration: (Y/N) ", "ERROR: Failed to load config (user aborted)", error_codes.WRONG_CONFIG)
+	utils.PromptConfirm("Do you want to proceed with this configuration?", "ERROR: Failed to load config (user aborted)", exit_codes.WRONG_CONFIG)
 	logger.Info("Proceeding with the installation...")
 
 	if config.Platform.Brew {
@@ -34,7 +37,7 @@ func main() {
 			if err != nil {
 				logger.Error("Failed to install brew")
 				logger.Warn("Please try to install brew manually or specify manual installation in config.")
-				os.Exit(error_codes.BREW_SPECIFIED_BUT_NOT_INSTALLED)
+				os.Exit(exit_codes.BREW_SPECIFIED_BUT_NOT_INSTALLED)
 			}
 		}
 		logger.Info("Brew is installed and will be used for installation.")
@@ -47,7 +50,7 @@ func main() {
 		err = config.Installers.Tools.Git.Install()
 		if err != nil {
 			logger.Error("Failed to install git")
-			os.Exit(error_codes.NO_GIT)
+			os.Exit(exit_codes.NO_GIT)
 		}
 	}
 

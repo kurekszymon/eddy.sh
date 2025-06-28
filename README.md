@@ -27,10 +27,48 @@ In many teams, onboarding involves navigating outdated or fragmented setup guide
 - Adapt quickly to changing requirements or tooling.
 
 ## Vision
-In the future, `eddy.sh` aims to support system scanning. Running a command like `eddy.sh scan` could generate a `.yml` file based on your current environment—making it easy to share configurations with new team members.
+In the future, I want `eddy.sh` to support system scanning. Running a command like `eddy.sh scan` could generate a `.yml` file based on your current environment—making it easy to share configurations with new team members.
 
-## Current Capabilities
-With a prepared `.yml` file i.e. [config.yml](https://github.com/kurekszymon/eddy.sh/blob/main/config.yaml), you can fully configure a new developer's environment in just a few minutes. This eliminates the need for manual steps like setting up CMake on Windows or configuring WebAssembly for frontend development—tasks that often derail onboarding.
+## Command Line Usage
+
+`eddy.sh` can be used both interactively and via command-line arguments for automation or scripting.
+
+### Basic Commands
+
+```bash
+eddy.sh install <tool>
+eddy.sh help
+```
+
+### Examples
+
+- Install Node Version Manager (nvm):
+  ```bash
+  eddy.sh install nvm
+  ```
+- Install all JavaScript tools (e.g., nvm):
+  ```bash
+  eddy.sh install javascript
+  ```
+- Install all C++ tools (cmake, emscripten, ninja):
+  ```bash
+  eddy.sh install cpp
+  ```
+
+
+### Available Tools
+
+- `javascript`, `js` – All JavaScript tools (currently: nvm)
+- `nvm` – Node Version Manager
+- `cpp`, `c++` – All C++ tools (cmake, emscripten, ninja)
+- `cmake` – CMake build system
+- `emscripten` – Emscripten compiler
+- `ninja` – Ninja build system
+
+For more information, run:
+```bash
+eddy.sh help
+```
 
 ## Contributing
 Contributions are welcome!
@@ -40,6 +78,7 @@ The project is designed so that large language models (LLMs) can assist in gener
 - Add a new installation definition file for the tool.
 - Include any relevant context from the codebase.
 - Confirm the tool installs and functions as expected.
+- Make sure you also extend CLI and the docs. 
 - Submit a pull request with your changes.
 
 ## Running Locally

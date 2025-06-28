@@ -3,13 +3,18 @@ package config
 import (
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
+	"github.com/kurekszymon/eddy.sh/internal/exit_codes"
+	"github.com/kurekszymon/eddy.sh/internal/globals"
 	"github.com/kurekszymon/eddy.sh/internal/installers"
 	"github.com/kurekszymon/eddy.sh/internal/installers/cpp"
 	"github.com/kurekszymon/eddy.sh/internal/installers/javascript"
+	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 	"gopkg.in/yaml.v3"
 )
 
@@ -129,8 +134,25 @@ func (c *Config) Print() {
 	fmt.Println()
 }
 
-func LoadConfig(filename string, shell *shell.ShellHandler) (*Config, error) {
-	data, err := os.ReadFile(filename)
+func LoadConfig(shell *shell.ShellHandler) (*Config, error) {
+	eddy_dir, err := shell.GetEddyDir()
+	if err != nil {
+		logger.Error("Something went horribly wrong. Please report an issue.") // paste link to issues
+		os.Exit(exit_codes.SOMETHING_WENT_WRONG)
+	}
+
+	config_path := path.Join(eddy_dir, globals.CONFIG_FILE)
+	_, err = os.Stat(config_path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			logger.Warn(globals.CONFIG_FILE + " was not found.")
+			prompt := fmt.Sprintf("Do you want to download default config from %s?", globals.CONFIG_URL)
+			utils.PromptConfirm(prompt, "User denied downloading config.", exit_codes.NO_CONFIG)
+			shell.Curl("https://raw.githubusercontent.com/kurekszymon/eddy.sh/refs/heads/main/config.yaml")
+		}
+	}
+
+	data, err := os.ReadFile(config_path)
 	if err != nil {
 		return nil, err
 	}

@@ -11,6 +11,7 @@ const (
 	LogWarning LogType = "warning"
 	LogError   LogType = "error"
 	LogInfo    LogType = "info"
+	LogPrompt  LogType = "prompt"
 )
 
 func FormatLogType(message string, logType LogType) string {
@@ -25,6 +26,8 @@ func FormatLogType(message string, logType LogType) string {
 	var color string
 	switch logType {
 	case LogDebug:
+		color = debug
+	case LogPrompt:
 		color = debug
 	case LogWarning:
 		color = yellow
@@ -59,5 +62,10 @@ func Error(message string) {
 
 func Debug(message string) {
 	fmt_message := FormatLogType(message, LogDebug)
+	fmt.Println(fmt_message)
+}
+
+func Prompt(message string) {
+	fmt_message := FormatLogType(message, LogPrompt)
 	fmt.Println(fmt_message)
 }
