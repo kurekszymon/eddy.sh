@@ -5,17 +5,26 @@ package shell
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
+
+	"github.com/kurekszymon/eddy.sh/internal/logger"
 )
 
 type ShellHandler struct{}
 
 func (s *ShellHandler) CheckCommand(command string) error {
+	msg := fmt.Sprintf("checking for '%s'", command)
+	logger.Info(msg)
+
 	err := s.run("where %s > NUL", command)
 
 	if err != nil {
 		return err
 	}
+
+	msg = fmt.Sprintf("'%s' is present", command)
+	logger.Info(msg)
 
 	return nil
 }
@@ -38,6 +47,7 @@ func (s *ShellHandler) Symlink(source string, dest string) error {
 	}
 
 	link_dir := filepath.Join(eddy_bin, dest)
+	logger.Info("Creating symlink for " + dest)
 
 	s.run("if not exist %s", link_dir, "mklink", link_dir, source)
 

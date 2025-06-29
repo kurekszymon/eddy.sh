@@ -29,7 +29,6 @@ func main() {
 	logger.Info("Proceeding with the installation...")
 
 	if config.Platform.Brew {
-		logger.Info("Checking for brew...")
 		err = handler.CheckCommand("brew")
 		if err != nil {
 			logger.Warn("Brew is not installed. Installing brew...")
@@ -43,7 +42,6 @@ func main() {
 		logger.Info("Brew is installed and will be used for installation.")
 	}
 
-	logger.Info("Checking for git...")
 	err = handler.CheckCommand("git")
 	if err != nil {
 		logger.Warn("Git is not installed. Installing git...")
@@ -53,6 +51,12 @@ func main() {
 			os.Exit(exit_codes.NO_GIT)
 		}
 	}
+
+	logger.Warn("If you plan to use SSH with GitHub, GitLab, or Bitbucket, make sure to generate SSH key and add it to your account:")
+	logger.Info("GitHub:    https://docs.github.com/en/authentication/connecting-to-github-with-ssh")
+	logger.Info("GitLab:    https://docs.gitlab.com/user/ssh/")
+	logger.Info("Bitbucket: https://support.atlassian.com/bitbucket-cloud/docs/set-up-an-ssh-key/")
+	utils.PromptConfirm("Please continue only after you make sure you've added SSH keys to your account - otherwise 'git clone' may fail.", "Git installation denied by the user.", exit_codes.SSH_KEYS_DENIED)
 
 	// REPOSITORIES
 	repos := config.Git.Repos

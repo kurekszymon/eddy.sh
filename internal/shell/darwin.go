@@ -13,12 +13,17 @@ import (
 type ShellHandler struct{}
 
 func (s *ShellHandler) CheckCommand(command string) error {
+	msg := fmt.Sprintf("checking for '%s'", command)
+	logger.Info(msg)
+
 	err := s.run("command -v %s > /dev/null", command)
 
 	if err != nil {
-		return fmt.Errorf("command %s not found: %w", command, err)
+		return fmt.Errorf("command %s not found", command)
 	}
 
+	msg = fmt.Sprintf("'%s' is present", command)
+	logger.Info(msg)
 	return nil
 }
 

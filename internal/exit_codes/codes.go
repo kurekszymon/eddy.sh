@@ -7,7 +7,8 @@ const (
 	WRONG_CONFIG                     = 4
 	BREW_SPECIFIED_BUT_NOT_INSTALLED = 5
 	NO_GIT                           = 6
-	CUSTOM_SCRIPT_EXIT               = 7
+	SSH_KEYS_DENIED                  = 7
+	CUSTOM_SCRIPT_EXIT               = 8
 	// cli
 	UNKNOWN_COMMAND                = 11
 	CLI_INSTALL_TOOL_NOT_SPECIFIED = 12
