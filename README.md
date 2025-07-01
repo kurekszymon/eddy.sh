@@ -29,6 +29,9 @@ In many teams, onboarding involves navigating outdated or fragmented setup guide
 ## Vision
 In the future, I want `eddy.sh` to support system scanning. Running a command like `eddy.sh scan` could generate a `.yml` file based on your current environment—making it easy to share configurations with new team members.
 
+## General Usage 
+If you are running `eddy.sh` on windows, please do that with elevated priviliges. Creating symlinks is not available as a regular user. 
+
 ## Command Line Usage
 
 `eddy.sh` can be used both interactively and via command-line arguments for automation or scripting.

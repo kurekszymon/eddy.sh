@@ -49,7 +49,7 @@ func (s *ShellHandler) Symlink(source string, dest string) error {
 	link_dir := filepath.Join(eddy_bin, dest)
 	logger.Info("Creating symlink for " + dest)
 
-	s.run("if not exist %s", link_dir, "mklink", link_dir, source)
+	s.run("if not exist %s mklink %s %s", link_dir, link_dir, source)
 
 	return nil
 }
