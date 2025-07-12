@@ -83,10 +83,12 @@ func main() {
 	}
 
 	cpp := config.Installers.Cpp
-	cpp.Install() // install now returns a map of errors, utilize this.
+	cpp_errors := cpp.Install()
 
 	js := config.Installers.Javascript
-	js.Install()
+	js_errors := js.Install()
+
+	utils.PrintInstallErrors(cpp_errors, js_errors)
 
 	logger.Warn("Please remember to add ~/.eddy.sh/bin to your PATH to access tools installed in the process.")
 }

@@ -25,3 +25,14 @@ func PromptConfirm(prompt string, error_message string, codes ...int) {
 		}
 	}
 }
+
+func PrintInstallErrors(errors_group ...map[string]error) {
+	for _, errors := range errors_group {
+		if len(errors) > 0 {
+			for toolName, err := range errors {
+				message := fmt.Sprintf("Error installing %s: %v\n", toolName, err)
+				logger.Error(message)
+			}
+		}
+	}
+}
