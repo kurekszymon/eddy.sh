@@ -15,13 +15,14 @@ import (
 func main() {
 	handler := &shell.ShellHandler{}
 
-	config, err := config.LoadConfig(handler)
+	config := config.Init(handler)
+	cli.HandleArgs(handler, config)
+
+	err := config.Load(handler)
 	if err != nil {
 		logger.Error("Failed to load config, please check ~/.eddy.sh" + globals.CONFIG_FILE)
 		os.Exit(exit_codes.WRONG_CONFIG)
 	}
-
-	cli.HandleArgs(handler, config)
 
 	config.Print()
 

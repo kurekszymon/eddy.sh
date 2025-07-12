@@ -39,25 +39,36 @@ If you are running `eddy.sh` on windows, please do that with elevated priviliges
 ### Basic Commands
 
 ```bash
-eddy.sh install <tool>
+eddy.sh install <tool> [version]
 eddy.sh help
 ```
 
 ### Examples
 
-- Install Node Version Manager (nvm):
+- Install Node Version Manager (nvm) (latest):
   ```bash
   eddy.sh install nvm
+  ```
+- Install Node Version Manager (nvm) version 0.40.3:
+  ```bash
+  eddy.sh install nvm 0.40.3
   ```
 - Install all JavaScript tools (e.g., nvm):
   ```bash
   eddy.sh install javascript
   ```
+- Install CMake (latest):
+  ```bash
+  eddy.sh install cmake
+  ```
+- Install CMake version 3.27.0:
+  ```bash
+  eddy.sh install cmake 3.27.0
+  ```
 - Install all C++ tools (cmake, emscripten, ninja):
   ```bash
   eddy.sh install cpp
   ```
-
 
 ### Available Tools
 
@@ -67,6 +78,8 @@ eddy.sh help
 - `cmake` – CMake build system
 - `emscripten` – Emscripten compiler
 - `ninja` – Ninja build system
+
+You can specify a version for any tool. If omitted, the latest version will be installed.
 
 For more information, run:
 ```bash

@@ -40,19 +40,24 @@ type Config struct {
 	Scripts    []types.CustomScript
 }
 
-// Process transforms the raw YAML structure into a more accessible format
-func (c *Config) Process(shell *shell.ShellHandler) {
-	platform := c.DetermineInstalationType(c.Platform)
-	c.PkgManager = platform
+func Init(shell *shell.ShellHandler) *Config {
+	config := &Config{}
 
-	c.Installers = &Installers{
-		Cpp:        &cpp.Tools{Shell: shell, PkgManager: c.PkgManager, CloneDir: c.Git.CloneDir},
-		Javascript: &javascript.Tools{Shell: shell, PkgManager: c.PkgManager},
+	platform := config.DetermineInstalationType(config.Platform)
+	config.PkgManager = platform
+
+	config.Installers = &Installers{
+		Cpp:        &cpp.Tools{Shell: shell, PkgManager: config.PkgManager, CloneDir: config.Git.CloneDir},
+		Javascript: &javascript.Tools{Shell: shell, PkgManager: config.PkgManager},
 		Tools:      &installers.Tools{Shell: shell},
 	}
 
-	c.Installers.Tools = installers.GetTools(shell)
+	config.Installers.Tools = installers.GetTools(shell)
 
+	return config
+}
+
+func (c *Config) ProcessYaml(shell *shell.ShellHandler) {
 	var setter installers.ToolSetter
 
 	for _, langGroup := range c.Languages {
@@ -134,7 +139,7 @@ func (c *Config) Print() {
 	fmt.Println()
 }
 
-func LoadConfig(shell *shell.ShellHandler) (*Config, error) {
+func (config *Config) Load(shell *shell.ShellHandler) error {
 	eddy_dir, err := shell.GetEddyDir()
 	if err != nil {
 		logger.Error("Something went horribly wrong. Please report an issue.") // paste link to issues
@@ -154,17 +159,17 @@ func LoadConfig(shell *shell.ShellHandler) (*Config, error) {
 
 	data, err := os.ReadFile(config_path)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	config := &Config{}
 	err = yaml.Unmarshal(data, config)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	config.Process(shell)
-	return config, nil
+	config.ProcessYaml(shell)
+
+	return nil
 }
 
 func (c *Config) DetermineInstalationType(platform YamlPlatform) types.PkgManager {

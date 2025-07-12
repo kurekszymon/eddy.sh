@@ -28,25 +28,41 @@ func HandleArgs(handler *shell.ShellHandler, cfg *config.Config) {
 			os.Exit(exit_codes.CLI_INSTALL_TOOL_NOT_SPECIFIED)
 		}
 		tool := strings.ToLower(os.Args[2])
+		version := "latest"
+		if len(os.Args) > 3 {
+			version = strings.ToLower(os.Args[3])
+		}
 		switch tool {
 
 		// js
 		case "javascript", "js":
-			install(cfg.Installers.Javascript.Nvm, "nvm")
+			loadTool(cfg.Installers.Javascript, "nvm", "latest")
+
+			install(cfg.Installers.Javascript.Nvm)
 		case "nvm":
-			install(cfg.Installers.Javascript.Nvm, "nvm")
+			loadTool(cfg.Installers.Javascript, "nvm", version)
+
+			install(cfg.Installers.Javascript.Nvm)
 
 		// c++
 		case "cpp", "c++":
-			install(cfg.Installers.Cpp.Cmake, "cmake")
-			install(cfg.Installers.Cpp.Emscripten, "emscripten")
-			install(cfg.Installers.Cpp.Ninja, "ninja")
+			loadTool(cfg.Installers.Cpp, "cmake", "latest")
+			loadTool(cfg.Installers.Cpp, "emscripten", "latest")
+			loadTool(cfg.Installers.Cpp, "cmake", "latest")
+
+			install(cfg.Installers.Cpp.Cmake)
+			install(cfg.Installers.Cpp.Emscripten)
+			install(cfg.Installers.Cpp.Ninja)
 		case "cmake":
-			install(cfg.Installers.Cpp.Cmake, "cmake")
+			loadTool(cfg.Installers.Cpp, "cmake", version)
+			install(cfg.Installers.Cpp.Cmake)
 		case "emscripten":
-			install(cfg.Installers.Cpp.Emscripten, "emscripten")
+			loadTool(cfg.Installers.Cpp, "emscripten", version)
+			install(cfg.Installers.Cpp.Emscripten)
 		case "ninja":
-			install(cfg.Installers.Cpp.Ninja, "ninja")
+			loadTool(cfg.Installers.Cpp, "ninja", version)
+
+			install(cfg.Installers.Cpp.Ninja)
 
 		default:
 			logger.Error("Unknown tool " + tool)
@@ -65,19 +81,23 @@ func HandleArgs(handler *shell.ShellHandler, cfg *config.Config) {
 	os.Exit(exit_codes.SUCCESS)
 }
 
-func install(tool *installers.Tool, toolName string) {
-	if tool != nil {
-		err := tool.Install()
-		if err != nil {
-			msg := fmt.Sprintf("%s was not installed %s", tool.Name, err)
-			logger.Error(msg)
-			os.Exit(exit_codes.TOOL_NOT_INSTALLED)
-		}
-	} else {
-		msg := fmt.Sprintf("%s is not present in your config file.", toolName)
+func install(tool *installers.Tool) {
+	err := tool.Install()
+	if err != nil {
+		msg := fmt.Sprintf("%s was not installed %s", tool.Name, err)
 		logger.Error(msg)
-		os.Exit(exit_codes.CLI_INSTALL_TOOL_NOT_SPECIFIED)
+		os.Exit(exit_codes.TOOL_NOT_INSTALLED)
 	}
+
+}
+
+func loadTool(group installers.ToolSetter, name string, version string) {
+	tool := &installers.Tool{
+		Name:    name,
+		Version: version,
+	}
+
+	group.SetTool(name, tool)
 }
 
 func printHelp() {
@@ -85,14 +105,16 @@ func printHelp() {
 eddy.sh - Universal developer environment installer
 
 Usage:
-  eddy.sh install <tool>      Install a specific tool or tool group
-  eddy.sh help                Show this help message
+  eddy.sh install <tool> [version]   Install a specific tool or tool group (optionally specify version)
+  eddy.sh help                       Show this help message
 
 Examples:
-  eddy.sh install nvm         Install Node Version Manager (nvm)
-  eddy.sh install javascript  Install all JavaScript tools (e.g., nvm)
-  eddy.sh install cmake       Install CMake
-  eddy.sh install cpp         Install all C++ tools (cmake, emscripten, ninja)
+  eddy.sh install nvm                Install Node Version Manager (nvm) (latest version)
+  eddy.sh install nvm 0.40.3         Install Node Version Manager (nvm) version 0.40.3
+  eddy.sh install javascript         Install all JavaScript tools (e.g., nvm)
+  eddy.sh install cmake              Install CMake (latest version)
+  eddy.sh install cmake 3.27.0       Install CMake version 3.27.0
+  eddy.sh install cpp                Install all C++ tools (cmake, emscripten, ninja)
 
 Available tools:
   javascript, js     All JavaScript tools (currently: nvm)
