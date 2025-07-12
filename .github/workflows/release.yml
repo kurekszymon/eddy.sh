@@ -73,8 +73,8 @@ jobs:
         run: |
           git fetch --tags
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
-          echo "Changes since $PREV_TAG:" > dist/release_notes.txt
-          git log $PREV_TAG..HEAD --pretty=format:"- %s" >> dist/release_notes.txt
+          echo "Changes since $PREV_TAG:" > release_notes.txt
+          git log $PREV_TAG..HEAD --pretty=format:"- %s" >> release_notes.txt
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
