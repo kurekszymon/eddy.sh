@@ -64,6 +64,13 @@ jobs:
         with:
           path: dist/
 
+      - name: Generate release notes from commits
+        run: |
+          git fetch --tags
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          echo "Changes since $PREV_TAG:" > release_notes.txt
+          git log $PREV_TAG..HEAD --pretty=format:"- %s" >> release_notes.txt
+
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -71,8 +78,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body: |
-            Automated release for eddy.sh.
-            Includes builds for:
-            - macOS (amd64, arm64)
-            - Windows (amd64)
+          bodyFile: release_notes.txt
