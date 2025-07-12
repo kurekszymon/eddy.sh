@@ -7,6 +7,7 @@ import (
 
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) CmakeInstall() error {
@@ -32,18 +33,24 @@ func (c *Tools) manualCmake() error {
 	var cmake_dir string
 	var cmake_bin_path string
 	var url string
-	if runtime.GOOS == "windows" {
-		cmake_dir = fmt.Sprintf("cmake-%s-windows-arm64", c.Cmake.Version)
-		cmake_bin_path = filepath.Join(cmake_dir, "bin")
+	version, err := utils.DetermineVersion(c.Cmake.Version, types.GHRepo{Name: "CMake", Owner: "Kitware"})
 
-		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.zip", c.Cmake.Version, cmake_dir)
-	} else {
-		cmake_dir = fmt.Sprintf("cmake-%s-macos-universal", c.Cmake.Version)
-		cmake_bin_path = filepath.Join(cmake_dir, "Cmake.app", "Contents", "bin")
-		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.tar.gz", c.Cmake.Version, cmake_dir)
+	if err != nil {
+		return err
 	}
 
-	err := c.Shell.Curl(url)
+	if runtime.GOOS == "windows" {
+		cmake_dir = fmt.Sprintf("cmake-%s-windows-arm64", version)
+		cmake_bin_path = filepath.Join(cmake_dir, "bin")
+
+		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.zip", version, cmake_dir)
+	} else {
+		cmake_dir = fmt.Sprintf("cmake-%s-macos-universal", version)
+		cmake_bin_path = filepath.Join(cmake_dir, "Cmake.app", "Contents", "bin")
+		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.tar.gz", version, cmake_dir)
+	}
+
+	err = c.Shell.Curl(url)
 	if err != nil {
 		return err
 	}

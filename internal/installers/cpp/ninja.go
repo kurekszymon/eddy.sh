@@ -8,6 +8,7 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/globals"
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) NinjaInstall() error {
@@ -29,10 +30,15 @@ func (c *Tools) brewNinja() error {
 }
 
 func (c *Tools) manualNinja() error {
-	logger.Info("Downloading ninja version " + c.Ninja.Version)
+	version, err := utils.DetermineVersion(c.Ninja.Version, types.GHRepo{Name: "ninja", Owner: "ninja-build"})
+	if err != nil {
+		return err
+	}
 
-	ninja_url := fmt.Sprintf("https://github.com/ninja-build/ninja/releases/download/v%s/%s ", c.Ninja.Version, globals.NINJA_DIRNAME)
-	err := c.Shell.Curl(ninja_url)
+	logger.Info("Downloading ninja version " + version)
+
+	ninja_url := fmt.Sprintf("https://github.com/ninja-build/ninja/releases/download/v%s/%s ", version, globals.NINJA_DIRNAME)
+	err = c.Shell.Curl(ninja_url)
 	if err != nil {
 		return fmt.Errorf("failed to download ninja: %w", err)
 	}

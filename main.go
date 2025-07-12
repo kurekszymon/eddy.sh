@@ -65,7 +65,7 @@ func main() {
 			logger.Info("Cloning repository: " + repo)
 			err = handler.GitClone(repo, config.Git.CloneDir)
 			if err != nil {
-				logger.Error("Failed to clone repository: " + repo)
+				logger.Error(err.Error())
 			}
 		}
 	}
@@ -77,11 +77,12 @@ func main() {
 			logger.Info("Running custom script: " + script.Name)
 			err = handler.RunCustomScript(script.Command)
 			if err != nil {
-				logger.Error("Failed to run custom script: " + script.Name)
+				logger.Error(err.Error())
 			}
 		}
 	}
 
+	// INSTALLERS
 	cpp := config.Installers.Cpp
 	cpp_errors := cpp.Install()
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
+	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
 func (c *Tools) NvmInstall() error {
@@ -27,10 +28,15 @@ func (c *Tools) brewNvm() error {
 }
 
 func (c *Tools) manualNvm() error {
+	version, err := utils.DetermineVersion(c.Nvm.Version, types.GHRepo{Name: "nvm", Owner: "nvm-sh"})
+	if err != nil {
+		return err
+	}
+
 	logger.Info("Downloading NVM version " + c.Nvm.Version)
 
-	nvm_url := fmt.Sprintf("https://raw.githubusercontent.com/nvm-sh/nvm/v%s/install.sh", c.Nvm.Version)
-	err := c.Shell.Curl(nvm_url)
+	nvm_url := fmt.Sprintf("https://raw.githubusercontent.com/nvm-sh/nvm/v%s/install.sh", version)
+	err = c.Shell.Curl(nvm_url)
 	if err != nil {
 		return err
 	}

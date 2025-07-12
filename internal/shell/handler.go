@@ -40,7 +40,7 @@ func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
 
 	err := s.run("git clone --progress %s %s 2>&1", repoURL, ExpandPath(cloneDir))
 	if err != nil {
-		return fmt.Errorf("failed to clone repository %s into %s: %w", repoURL, cloneDir, err)
+		return err
 	}
 
 	message := fmt.Sprintf("Successfully cloned %s into %s\n", repoURL, cloneDir)
@@ -104,8 +104,6 @@ func (s *ShellHandler) RunScriptFile(filename string) error {
 }
 
 func (s *ShellHandler) RunCustomScript(script string) error {
-	// potentially flag it in config / omit custom script checks
-
 	message := fmt.Sprintf("You are about to run custom command: %s", script)
 	logger.Warn(message)
 	utils.PromptConfirm("Custom script can potentially harm your system. Do you want to continue? (Y/N) ",
