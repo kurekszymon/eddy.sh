@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with: 
+          fetch-depth: 0  
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -74,7 +76,7 @@ jobs:
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: dist/**/*
+          artifacts: dist/*/eddy-*
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
