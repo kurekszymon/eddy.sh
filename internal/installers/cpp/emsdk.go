@@ -3,7 +3,6 @@ package cpp
 import (
 	"errors"
 	"path/filepath"
-	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
@@ -62,21 +61,6 @@ func (c *Tools) manualEmsdk() error {
 		return err
 	}
 
-	if runtime.GOOS == "windows" {
-		c.Shell.Symlink(emsdk_dir, "emsdk.sh")
-		c.Shell.Symlink(emsdk_dir, "emsdk.bat")
-		c.Shell.Symlink(emsdk_dir, "emsdk.ps1")
-		c.Shell.Symlink(emsdk_dir, "emsdk_env.ps1")
-		c.Shell.Symlink(emsdk_dir, "emsdk_env.bat")
-		c.Shell.Symlink(emsdk_dir, "emsdk_env.sh")
-
-	} else {
-		c.Shell.Symlink(emsdk_dir, "emsdk")
-		c.Shell.Symlink(emsdk_dir, "emsdk.sh")
-		c.Shell.Symlink(emsdk_dir, "emsdk_env.sh")
-	}
-
 	logger.Info("Emscripten installed successfully")
-
 	return nil
 }

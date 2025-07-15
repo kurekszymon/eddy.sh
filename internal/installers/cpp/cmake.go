@@ -68,10 +68,9 @@ func (c *Tools) manualCmake() error {
 
 	cmake_bin := filepath.Join(eddy_dir, cmake_bin_path)
 
-	c.Shell.Symlink(filepath.Join(cmake_bin, "cmake"), "cmake")
-	c.Shell.Symlink(filepath.Join(cmake_bin, "cpack"), "cpack")
-	c.Shell.Symlink(filepath.Join(cmake_bin, "ctest"), "ctest")
-	c.Shell.Symlink(filepath.Join(cmake_bin, "ccmake"), "ccmake")
+	for _, bin := range []string{"cmake", "cpack", "ctest", "ccmake"} {
+		c.Shell.Symlink(filepath.Join(cmake_bin, bin), bin)
+	}
 
 	logger.Info("CMake installed successfully")
 	return nil
