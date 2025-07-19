@@ -32,6 +32,15 @@ In the future, I want `eddy.sh` to support system scanning. Running a command li
 ## General Usage 
 If you are running `eddy.sh` on windows, please do that with elevated priviliges. Creating symlinks is not available as a regular user. 
 
+To use this app, simply run the binary:
+
+`eddy.sh`
+
+If you want to use a custom configuration file (the default is `~/.eddy.sh/config.yaml`),  
+specify it with the `--config` flag:
+
+`eddy.sh --config ~/configs/config.yaml`
+
 ## Command Line Usage
 
 `eddy.sh` can be used both interactively and via command-line arguments for automation or scripting.

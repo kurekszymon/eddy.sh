@@ -38,6 +38,7 @@ type Config struct {
 	PkgManager types.PkgManager
 	Installers *Installers
 	Scripts    []types.CustomScript
+	File       string
 }
 
 func Init(shell *shell.ShellHandler) *Config {
@@ -140,17 +141,22 @@ func (c *Config) Print() {
 }
 
 func (config *Config) Load(shell *shell.ShellHandler) error {
-	eddy_dir, err := shell.GetEddyDir()
-	if err != nil {
-		logger.Error("Something went horribly wrong. Please report an issue.") // paste link to issues
-		os.Exit(exit_codes.SOMETHING_WENT_WRONG)
+	config_path := config.File
+
+	if config_path == "" {
+		eddy_dir, err := shell.GetEddyDir()
+		if err != nil {
+			logger.Error("Something went horribly wrong. Please report an issue.") // paste link to issues
+			os.Exit(exit_codes.SOMETHING_WENT_WRONG)
+		}
+		config.File = globals.CONFIG_FILE
+		config_path = path.Join(eddy_dir, globals.CONFIG_FILE)
 	}
 
-	config_path := path.Join(eddy_dir, globals.CONFIG_FILE)
-	_, err = os.Stat(config_path)
+	_, err := os.Stat(config_path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			logger.Warn(globals.CONFIG_FILE + " was not found.")
+			logger.Warn(config_path + " was not found.")
 			prompt := fmt.Sprintf("Do you want to download default config from %s?", globals.CONFIG_URL)
 			utils.PromptConfirm(prompt, "User denied downloading config.", exit_codes.NO_CONFIG)
 			shell.Curl("https://raw.githubusercontent.com/kurekszymon/eddy.sh/refs/heads/main/config.yaml")

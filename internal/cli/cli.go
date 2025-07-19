@@ -18,6 +18,20 @@ func HandleArgs(handler *shell.ShellHandler, cfg *config.Config) {
 		return
 	}
 
+	flags_present := false
+	for i := 0; i < len(os.Args); i++ {
+		if os.Args[i] == "--config" || os.Args[i] == "-c" && i+1 < len(os.Args) {
+			cfg.File = shell.ExpandPath(os.Args[i+1])
+			logger.Info("Using config file: " + cfg.File)
+			flags_present = true
+			continue
+		}
+		// parse --platform / --pkgManager
+	}
+	if flags_present {
+		return
+	}
+
 	cmd := strings.ToLower(os.Args[1])
 
 	switch cmd {
@@ -32,6 +46,7 @@ func HandleArgs(handler *shell.ShellHandler, cfg *config.Config) {
 		if len(os.Args) > 3 {
 			version = strings.ToLower(os.Args[3])
 		}
+
 		switch tool {
 
 		// js
@@ -108,6 +123,10 @@ Usage:
   eddy.sh install <tool> [version]   Install a specific tool or tool group (optionally specify version)
   eddy.sh help                       Show this help message
 
+
+Flags (can be placed after the main command):
+  --config, -c <file>        Use a custom config file (default: ~/.eddy.sh/config.yaml)
+
 Examples:
   eddy.sh install nvm                Install Node Version Manager (nvm) (latest version)
   eddy.sh install nvm 0.40.3         Install Node Version Manager (nvm) version 0.40.3
@@ -123,6 +142,8 @@ Available tools:
   cmake              CMake build system
   emscripten         Emscripten compiler
   ninja              Ninja build system
+
+You can specify a version for any tool. If omitted, the latest version will be installed.
 
 For more information, see: https://github.com/kurekszymon/eddy.sh`)
 }

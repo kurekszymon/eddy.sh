@@ -6,7 +6,6 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/cli"
 	"github.com/kurekszymon/eddy.sh/internal/config"
 	"github.com/kurekszymon/eddy.sh/internal/exit_codes"
-	"github.com/kurekszymon/eddy.sh/internal/globals"
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/shell"
 	"github.com/kurekszymon/eddy.sh/internal/utils"
@@ -20,7 +19,7 @@ func main() {
 
 	err := config.Load(handler)
 	if err != nil {
-		logger.Error("Failed to load config, please check ~/.eddy.sh" + globals.CONFIG_FILE)
+		logger.Error("Failed to load config, please check " + config.File)
 		os.Exit(exit_codes.WRONG_CONFIG)
 	}
 
