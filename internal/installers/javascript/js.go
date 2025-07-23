@@ -11,7 +11,6 @@ import (
 type Installer struct {
 	Shell      *shell.ShellHandler
 	PkgManager types.PkgManager
-	CloneDir   string
 
 	Available map[string]*installers.Tool
 	NotLoaded []installers.Tool

@@ -57,6 +57,25 @@ func DetermineVersion(version string, repo types.GHRepo) (string, error) {
 	return version, nil
 }
 
+func HandleFlags() map[Flags]string {
+	flags := map[Flags]string{
+		Config: "",
+	}
+
+	for i := 0; i < len(os.Args); i++ {
+		if os.Args[i] == "--config" || os.Args[i] == "-c" && i+1 < len(os.Args) {
+			file := os.Args[i+1]
+			logger.Warn("Using custom config file: " + file)
+
+			flags[Config] = file
+			continue
+		}
+		// parse --platform / --pkgManager
+	}
+
+	return flags
+}
+
 func getLatestReleaseFromGithub(owner string, repo string) (string, error) {
 	repoURL := fmt.Sprintf("https://github.com/%s/%s", owner, repo)
 	latestURL := repoURL + "/releases/latest"
