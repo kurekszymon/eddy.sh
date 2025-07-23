@@ -9,7 +9,9 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 )
 
-type ShellHandler struct{}
+type ShellHandler struct {
+	Shell
+}
 
 func (s *ShellHandler) CheckCommand(command string) error {
 	msg := fmt.Sprintf("checking for '%s'", command)
