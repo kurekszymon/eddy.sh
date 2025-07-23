@@ -14,7 +14,7 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
-func NewShellHandler() *ShellHandler {
+func NewShellHandler() Shell {
 	return &ShellHandler{}
 }
 
@@ -32,6 +32,22 @@ func (s *ShellHandler) GetEddyDir() (string, error) {
 	}
 
 	return eddyDir, nil
+}
+
+func (s *ShellHandler) GetEddyBinDir() (string, error) {
+	eddyDir, err := s.GetEddyDir()
+	if err != nil {
+		return "", err
+	}
+
+	eddyBinDir := ExpandPath(filepath.Join(eddyDir, "bin"))
+
+	err = s.ensureDir(eddyBinDir)
+	if err != nil {
+		return "", err
+	}
+
+	return eddyBinDir, nil
 }
 
 func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
@@ -52,14 +68,9 @@ func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
 	return nil
 }
 
-func (s *ShellHandler) Curl(url string) error {
-	eddyDir, err := s.GetEddyDir()
-	if err != nil {
-		return err
-	}
-
-	command := fmt.Sprintf("curl -fL --progress-bar --output-dir %s -O %s", eddyDir, url)
-	err = s.run(command)
+func (s *ShellHandler) Curl(url string, outputDir string) error {
+	command := fmt.Sprintf("curl -fL --progress-bar --output-dir %s -O %s", outputDir, url)
+	err := s.run(command)
 	if err != nil {
 		return err
 	}
@@ -74,20 +85,13 @@ func (s *ShellHandler) Echo(message string) error {
 	return nil
 }
 
-func (s *ShellHandler) Unzip(filename string, target_dir string) error {
-	eddyDir, err := s.GetEddyDir()
+func (s *ShellHandler) Unzip(archivePath string, targetDir string) error {
+	err := s.ensureDir(targetDir)
 	if err != nil {
 		return err
 	}
 
-	filename = filepath.Join(eddyDir, filename)
-	target_dir = filepath.Join(eddyDir, target_dir)
-	err = s.ensureDir(target_dir)
-	if err != nil {
-		return err
-	}
-
-	err = s.run("tar -xf %s -C %s", filename, target_dir)
+	err = s.run("tar -xf %s -C %s", archivePath, targetDir)
 
 	if err != nil {
 		return err

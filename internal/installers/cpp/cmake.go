@@ -30,8 +30,8 @@ func (c *Installer) brewCmake() error {
 
 func (c *Installer) manualCmake() error {
 	logger.Info("Installing CMake manually")
-	var cmake_dir string
-	var cmake_bin_path string
+	var cmakeDir string
+	var cmakeBinPath string
 	var url string
 	version, err := utils.DetermineVersion(c.Available["cmake"].Version, types.GHRepo{Name: "CMake", Owner: "Kitware"})
 
@@ -40,36 +40,41 @@ func (c *Installer) manualCmake() error {
 	}
 
 	if runtime.GOOS == "windows" {
-		cmake_dir = fmt.Sprintf("cmake-%s-windows-arm64", version)
-		cmake_bin_path = filepath.Join(cmake_dir, "bin")
+		cmakeDir = fmt.Sprintf("cmake-%s-windows-arm64", version)
+		cmakeBinPath = filepath.Join(cmakeDir, "bin")
 
-		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.zip", version, cmake_dir)
+		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.zip", version, cmakeDir)
 	} else {
-		cmake_dir = fmt.Sprintf("cmake-%s-macos-universal", version)
-		cmake_bin_path = filepath.Join(cmake_dir, "Cmake.app", "Contents", "bin")
-		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.tar.gz", version, cmake_dir)
+		cmakeDir = fmt.Sprintf("cmake-%s-macos-universal", version)
+		cmakeBinPath = filepath.Join(cmakeDir, "Cmake.app", "Contents", "bin")
+		url = fmt.Sprintf("https://github.com/Kitware/CMake/releases/download/v%s/%s.tar.gz", version, cmakeDir)
 	}
 
-	err = c.Shell.Curl(url)
+	eddyDir, err := c.Shell.GetEddyDir()
+	if err != nil {
+		return err
+	}
+	eddyBinDir, err := c.Shell.GetEddyBinDir()
+	if err != nil {
+		return err
+	}
+
+	err = c.Shell.Curl(url, eddyDir)
 	if err != nil {
 		return err
 	}
 
 	filename := filepath.Base(url)
-	err = c.Shell.Unzip(filename, "")
+	archivePath := filepath.Join(eddyDir, filename)
+	err = c.Shell.Unzip(archivePath, eddyDir)
 	if err != nil {
 		return err
 	}
 
-	eddy_dir, err := c.Shell.GetEddyDir()
-	if err != nil {
-		return err
-	}
-
-	cmake_bin := filepath.Join(eddy_dir, cmake_bin_path)
+	cmakeBin := filepath.Join(eddyDir, cmakeBinPath)
 
 	for _, bin := range []string{"cmake", "cpack", "ctest", "ccmake"} {
-		c.Shell.Symlink(filepath.Join(cmake_bin, bin), bin)
+		c.Shell.Symlink(filepath.Join(cmakeBin, bin), filepath.Join(eddyBinDir, bin))
 	}
 
 	logger.Info("CMake installed successfully")

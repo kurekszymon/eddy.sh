@@ -38,26 +38,32 @@ func (c *Installer) manualNinja() error {
 
 	logger.Info("Downloading ninja version " + version)
 
-	ninja_url := fmt.Sprintf("https://github.com/ninja-build/ninja/releases/download/v%s/%s ", version, globals.NINJA_DIRNAME)
-	err = c.Shell.Curl(ninja_url)
+	ninjaUrl := fmt.Sprintf("https://github.com/ninja-build/ninja/releases/download/v%s/%s ", version, globals.NINJA_DIRNAME)
+	eddyDir, err := c.Shell.GetEddyDir()
+	if err != nil {
+		return err
+	}
+
+	err = c.Shell.Curl(ninjaUrl, eddyDir)
 	if err != nil {
 		return fmt.Errorf("failed to download ninja: %w", err)
 	}
 
-	err = c.Shell.Unzip(globals.NINJA_DIRNAME, "")
+	ninjaZipPath := filepath.Join(eddyDir, globals.NINJA_DIRNAME)
+	err = c.Shell.Unzip(ninjaZipPath, eddyDir)
 	if err != nil {
 		return err
 	}
 
-	eddy_dir, err := c.Shell.GetEddyDir()
+	eddyBinDir, err := c.Shell.GetEddyBinDir()
 	if err != nil {
 		return err
 	}
 
-	ninja_path := filepath.Join(eddy_dir, "ninja")
+	ninja_path := filepath.Join(eddyBinDir, "ninja")
 	os.Chmod(ninja_path, 0755)
 
-	c.Shell.Symlink(ninja_path, "ninja")
+	c.Shell.Symlink(ninja_path, ninja_path)
 
 	logger.Info("Ninja installed successfully")
 	return nil
