@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/kurekszymon/eddy.sh/internal/cli"
 	"github.com/kurekszymon/eddy.sh/internal/config"
 	"github.com/kurekszymon/eddy.sh/internal/exit_codes"
 	"github.com/kurekszymon/eddy.sh/internal/installers"
@@ -25,6 +26,8 @@ type Installers struct {
 func main() {
 	handler := shell.NewShellHandler()
 
+	cli.HandleArgs(handler)
+
 	configFile := determineConfigFile(handler)
 
 	yaml, err := config.Load(shell.ExpandPath(configFile))
@@ -36,14 +39,12 @@ func main() {
 
 	cfg := config.Build(yaml)
 
-	installers := map[string]installers.Installer{
-		"cpp":        &cpp.Installer{Shell: handler, PkgManager: cfg.PkgManager, CloneDir: cfg.Git.CloneDir},
+	specificInstallers := map[string]installers.Installer{
+		"cpp":        &cpp.Installer{Shell: handler, PkgManager: cfg.PkgManager},
 		"javascript": &javascript.Installer{Shell: handler, PkgManager: cfg.PkgManager},
 	}
 
 	generalInstaller := general.NewGeneralInstaller(handler, cfg.PkgManager)
-
-	// cli.HandleArgs(handler, cfg)
 
 	config.PrintConfig(cfg)
 	utils.PromptConfirm("Do you want to proceed with this configuration?", "ERROR: Failed to load config (user aborted)", exit_codes.WRONG_CONFIG)
@@ -97,13 +98,13 @@ func main() {
 	// LANGUAGES
 	for k, v := range cfg.Tools {
 		for _, tool := range v {
-			installers[k].SetTool(tool.Name, &tool)
+			specificInstallers[k].SetTool(tool.Name, &tool)
 		}
 	}
 
 	errors := make(map[string]map[string]error)
 
-	for name, installer := range installers {
+	for name, installer := range specificInstallers {
 		installErrs := installer.Install()
 
 		if len(installErrs) > 0 {
