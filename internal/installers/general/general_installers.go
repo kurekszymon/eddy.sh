@@ -63,7 +63,6 @@ func (g *Installer) SetTool(toolName string, tool *installers.Tool) {
 
 	case "brew":
 		tool.InstallFunc = func() error {
-			logger.Debug(string(g.PkgManager))
 			if g.PkgManager == "brew" {
 				err := g.Shell.CheckCommand("brew")
 				if err == nil {

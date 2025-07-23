@@ -62,9 +62,16 @@ func (c *Installer) manualNinja() error {
 
 	ninjaPath := filepath.Join(eddyDir, "ninja")
 	ninjaBinPath := filepath.Join(eddyBinDir, "ninja")
-	os.Chmod(ninjaPath, 0755)
 
-	c.Shell.Symlink(ninjaPath, ninjaBinPath)
+	err = os.Chmod(ninjaPath, 0755)
+	if err != nil {
+		return err
+	}
+
+	err = c.Shell.Symlink(ninjaPath, ninjaBinPath)
+	if err != nil {
+		return err
+	}
 
 	logger.Info("Ninja installed successfully")
 	return nil

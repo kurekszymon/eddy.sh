@@ -6,26 +6,10 @@ import (
 	"strings"
 
 	"github.com/kurekszymon/eddy.sh/internal/installers"
-	"github.com/kurekszymon/eddy.sh/internal/installers/cpp"
-	"github.com/kurekszymon/eddy.sh/internal/installers/general"
-	"github.com/kurekszymon/eddy.sh/internal/installers/javascript"
 	"github.com/kurekszymon/eddy.sh/internal/types"
 	"gopkg.in/yaml.v3"
 )
 
-type Installers struct {
-	Cpp        *cpp.Installer
-	Javascript *javascript.Installer
-	Tools      *general.Installer
-}
-
-type YamlPlatform struct {
-	Brew   bool `yaml:"brew"`
-	Manual bool `yaml:"manual_installation"`
-}
-
-// RawConfig is a struct that directly maps to the structure of the config.yaml file.
-// It is used only for parsing and should not be used directly by the application.	ype RawConfig struct {
 type RawConfig struct {
 	Languages []map[string][]map[string]string `yaml:"languages"`
 	Git       struct {
@@ -39,9 +23,13 @@ type RawConfig struct {
 	} `yaml:"platform"`
 }
 
-// Load parses the configuration file at the given path and returns a RawConfig struct.
-// It is the responsibility of the caller to handle file not found errors and to
-// provide a default configuration if necessary.
+type Config struct {
+	PkgManager    types.PkgManager
+	Tools         map[string][]installers.Tool
+	Git           types.Git
+	CustomScripts []types.CustomScript
+}
+
 func Load(path string) (*RawConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -57,20 +45,12 @@ func Load(path string) (*RawConfig, error) {
 	return &rawConfig, nil
 }
 
-type Settings struct {
-	PkgManager    types.PkgManager
-	Tools         map[string][]installers.Tool
-	Git           types.Git
-	CustomScripts []types.CustomScript
-}
-
-// Build creates a new Settings object from a RawConfig.
-func Build(rawConfig *RawConfig) *Settings {
+func Build(rawConfig *RawConfig) *Config {
 	pkgManager := determinePackageManager(rawConfig.Platform)
 	tools := processTools(rawConfig.Languages)
 	scripts := processScripts(rawConfig.CustomScripts)
 
-	return &Settings{
+	return &Config{
 		PkgManager:    pkgManager,
 		Tools:         tools,
 		Git:           types.Git{CloneDir: rawConfig.Git.CloneDir, Repos: rawConfig.Git.Repos},
@@ -78,31 +58,36 @@ func Build(rawConfig *RawConfig) *Settings {
 	}
 }
 
-func PrintConfig(cfg *Settings) {
-	fmt.Println("Configuration:")
-	fmt.Printf("  Package Manager: %s\n", cfg.PkgManager)
-	fmt.Printf("  Git Clone Directory: %s\n", cfg.Git.CloneDir)
-	fmt.Println("  Repositories:")
-	for _, repo := range cfg.Git.Repos {
-		fmt.Printf("    - %s", repo)
+func Print(cfg *Config) {
+	fmt.Println("--- Configuration ---")
+	fmt.Printf("Package Manager: %s\n", cfg.PkgManager)
+
+	if len(cfg.Git.Repos) > 0 {
+		fmt.Println("\nGit:")
+		fmt.Printf("  Clone Directory: %s\n", cfg.Git.CloneDir)
+		fmt.Println("  Repositories:")
+		for _, repo := range cfg.Git.Repos {
+			fmt.Printf("    - %s\n", repo)
+		}
 	}
 
 	if len(cfg.Tools) > 0 {
-		fmt.Println("   Tools:")
+		fmt.Println("\nTools:")
 		for lang, tools := range cfg.Tools {
-			fmt.Printf("   %s: \n", strings.Title(lang))
+			fmt.Printf("  %s:\n", lang)
 			for _, tool := range tools {
-				fmt.Printf("  - %s (version: %s)\n", tool.Name, tool.Version)
+				fmt.Printf("    - %s (version: %s)\n", tool.Name, tool.Version)
 			}
 		}
 	}
 
 	if len(cfg.CustomScripts) > 0 {
-		fmt.Println("   Custom Scripts:")
+		fmt.Println("\nCustom Scripts:")
 		for _, script := range cfg.CustomScripts {
-			fmt.Printf("  %s: %s \n", script.Name, script.Command)
+			fmt.Printf("  - Name: %s, Command: %s\n", script.Name, script.Command)
 		}
 	}
+	fmt.Println("---------------------")
 }
 
 func determinePackageManager(platform struct {

@@ -74,7 +74,12 @@ func (c *Installer) manualCmake() error {
 	cmakeBin := filepath.Join(eddyDir, cmakeBinPath)
 
 	for _, bin := range []string{"cmake", "cpack", "ctest", "ccmake"} {
-		c.Shell.Symlink(filepath.Join(cmakeBin, bin), filepath.Join(eddyBinDir, bin))
+		err := c.Shell.Symlink(filepath.Join(cmakeBin, bin), filepath.Join(eddyBinDir, bin))
+		if err != nil {
+			msg := fmt.Sprintf("Failed to create symlink for %s: %v", bin, err)
+			logger.Error(msg)
+			// grab tools that errored and return
+		}
 	}
 
 	logger.Info("CMake installed successfully")
