@@ -2,6 +2,7 @@ package installers
 
 import "fmt"
 
+// maybe tool was better name?
 type Tool struct {
 	Name        string
 	Version     string
@@ -15,6 +16,7 @@ func (t *Tool) Install() error {
 	return fmt.Errorf("Install not implemented for tool: %s", t.Name)
 }
 
-type ToolSetter interface {
+type Installer interface {
 	SetTool(toolName string, tool *Tool)
+	Install() map[string]error
 }

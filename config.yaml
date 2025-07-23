@@ -11,9 +11,11 @@ git:
   clone_dir: "~/repos/from_eddy"
   repos:
     - https://github.com/kurekszymon/eddy.sh
+    - https://github.com/kurekszymon/eddy2.sh
 
 custom_scripts:
-  - configure_shell: echo "hello"
+  # - configure_shell: echo "hello"
+  # - configure_shell2: echo "hello2"
 
 platform:
   manual_installation: true # will install all tools manually (e.g. using curl)

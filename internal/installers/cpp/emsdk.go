@@ -8,7 +8,7 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/types"
 )
 
-func (c *Tools) EmscriptenInstall() error {
+func (c *Installer) EmscriptenInstall() error {
 	if c.PkgManager == types.Brew {
 		return c.brewEmsdk()
 	}
@@ -16,7 +16,7 @@ func (c *Tools) EmscriptenInstall() error {
 	return c.manualEmsdk()
 }
 
-func (c *Tools) brewEmsdk() error {
+func (c *Installer) brewEmsdk() error {
 	logger.Info("Installing emscripten using brew")
 	err := c.Shell.Brew("emscripten")
 	if err != nil {
@@ -26,7 +26,7 @@ func (c *Tools) brewEmsdk() error {
 	return nil
 }
 
-func (c *Tools) manualEmsdk() error {
+func (c *Installer) manualEmsdk() error {
 	err := c.Shell.CheckCommand("git")
 
 	if err != nil {
