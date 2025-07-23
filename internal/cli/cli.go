@@ -14,7 +14,7 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/types"
 )
 
-func HandleArgs(handler *shell.ShellHandler) {
+func HandleArgs(handler shell.Shell) {
 	if len(os.Args) < 2 {
 		// No command, run interactive installer (main logic)
 		return
@@ -42,26 +42,26 @@ func HandleArgs(handler *shell.ShellHandler) {
 		// js
 		case "javascript", "js":
 			loadTool(jsInstaller, "nvm", "latest")
-			install(jsInstaller, "javascript")
+			install(jsInstaller)
 		case "nvm":
 			loadTool(jsInstaller, "nvm", version)
-			install(jsInstaller, "nvm")
+			install(jsInstaller)
 
 		// c++
 		case "cpp", "c++":
 			loadTool(cppInstaller, "cmake", "latest")
 			loadTool(cppInstaller, "emscripten", "latest")
 			loadTool(cppInstaller, "ninja", "latest")
-			install(cppInstaller, "c++")
+			install(cppInstaller)
 		case "cmake":
 			loadTool(cppInstaller, "cmake", version)
-			install(cppInstaller, "cmake")
+			install(cppInstaller)
 		case "emscripten":
 			loadTool(cppInstaller, "emscripten", version)
-			install(cppInstaller, "emscripten")
+			install(cppInstaller)
 		case "ninja":
 			loadTool(cppInstaller, "ninja", version)
-			install(cppInstaller, "ninja")
+			install(cppInstaller)
 
 		default:
 			logger.Error("Unknown tool " + tool)
@@ -72,6 +72,9 @@ func HandleArgs(handler *shell.ShellHandler) {
 		printHelp()
 		os.Exit(exit_codes.SUCCESS)
 
+	case "--config", "-c":
+		return
+
 	default:
 		fmt.Println("Unknown command: " + cmd)
 		os.Exit(exit_codes.UNKNOWN_COMMAND)
@@ -80,7 +83,7 @@ func HandleArgs(handler *shell.ShellHandler) {
 	os.Exit(exit_codes.SUCCESS)
 }
 
-func install(installer installers.Installer, name string) {
+func install(installer installers.Installer) {
 	errors := installer.Install()
 	if len(errors) > 0 {
 		for toolName, err := range errors {

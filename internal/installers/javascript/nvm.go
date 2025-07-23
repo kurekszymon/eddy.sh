@@ -35,13 +35,12 @@ func (j *Installer) manualNvm() error {
 
 	logger.Info("Downloading NVM version " + j.Available["nvm"].Version)
 
-	nvm_url := fmt.Sprintf("https://raw.githubusercontent.com/nvm-sh/nvm/v%s/install.sh", version)
-	err = j.Shell.Curl(nvm_url)
+	eddy_dir, err := j.Shell.GetEddyDir()
 	if err != nil {
 		return err
 	}
-
-	eddy_dir, err := j.Shell.GetEddyDir()
+	nvm_url := fmt.Sprintf("https://raw.githubusercontent.com/nvm-sh/nvm/v%s/install.sh", version)
+	err = j.Shell.Curl(nvm_url, eddy_dir)
 	if err != nil {
 		return err
 	}

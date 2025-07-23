@@ -9,7 +9,7 @@ import (
 )
 
 type Installer struct {
-	Shell      *shell.ShellHandler
+	Shell      shell.Shell
 	PkgManager types.PkgManager
 
 	Available map[string]*installers.Tool

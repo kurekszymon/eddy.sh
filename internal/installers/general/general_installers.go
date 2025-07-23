@@ -12,14 +12,14 @@ import (
 )
 
 type Installer struct {
-	Shell      *shell.ShellHandler
+	Shell      shell.Shell
 	PkgManager types.PkgManager
 
 	Available map[string]*installers.Tool
 	NotLoaded []installers.Tool
 }
 
-func NewGeneralInstaller(shell *shell.ShellHandler, packageManager types.PkgManager) *Installer {
+func NewGeneralInstaller(shell shell.Shell, packageManager types.PkgManager) *Installer {
 
 	installer := &Installer{
 		Shell:      shell,
@@ -69,12 +69,12 @@ func (g *Installer) SetTool(toolName string, tool *installers.Tool) {
 				if err == nil {
 					return nil
 				}
-				logger.Warn("Brew is not installed. Installing brew...")
-				err = g.Shell.Curl("https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh")
+				eddyDir, err := g.Shell.GetEddyDir()
 				if err != nil {
 					return err
 				}
-				eddyDir, err := g.Shell.GetEddyDir()
+				logger.Warn("Brew is not installed. Installing brew...")
+				err = g.Shell.Curl("https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh", eddyDir)
 				if err != nil {
 					return err
 				}

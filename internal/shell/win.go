@@ -6,7 +6,6 @@ package shell
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 )
@@ -33,23 +32,10 @@ func (s *ShellHandler) Brew(pkg string) error {
 	return errors.New("brew is not supported on Windows, please use a different package manager")
 }
 
-func (s *ShellHandler) Symlink(source string, dest string) error {
-	eddy_dir, err := s.GetEddyDir()
+func (s *ShellHandler) Symlink(source string, linkPath string) error {
+	logger.Info("Creating symlink for " + source)
 
-	if err != nil {
-		return err
-	}
-
-	eddy_bin := filepath.Join(eddy_dir, "bin")
-	err = s.ensureDir(eddy_bin)
-	if err != nil {
-		return err
-	}
-
-	link_dir := filepath.Join(eddy_bin, dest)
-	logger.Info("Creating symlink for " + dest)
-
-	s.run("if not exist %s mklink %s %s", link_dir, link_dir, source)
+	s.run("if not exist %s mklink %s %s", linkPath, linkPath, source)
 
 	return nil
 }

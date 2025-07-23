@@ -17,12 +17,6 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
-type Installers struct {
-	Cpp        *cpp.Installer
-	Javascript *javascript.Installer
-	Tools      *general.Installer
-}
-
 func main() {
 	handler := shell.NewShellHandler()
 
@@ -121,7 +115,7 @@ func main() {
 	logger.Warn("Please remember to add ~/.eddy.sh/bin to your PATH to access tools installed in the process.")
 }
 
-func determineConfigFile(handler *shell.ShellHandler) string {
+func determineConfigFile(handler shell.Shell) string {
 	var configFile string
 	flags := utils.HandleFlags()
 
@@ -140,7 +134,7 @@ func determineConfigFile(handler *shell.ShellHandler) string {
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
 			logger.Warn("Config file not found at " + configFile)
 			utils.PromptConfirm("Do you want to use the default config? [Y/n]", "User denied using default config.", exit_codes.NO_CONFIG)
-			handler.Curl("https://raw.githubusercontent.com/kurekszymon/eddy.sh/refs/heads/main/config.yaml")
+			handler.Curl("https://raw.githubusercontent.com/kurekszymon/eddy.sh/refs/heads/main/config.yaml", eddy_dir)
 
 			determineConfigFile(handler)
 		}
