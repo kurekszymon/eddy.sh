@@ -40,7 +40,7 @@ func main() {
 
 	generalInstaller := general.NewGeneralInstaller(handler, cfg.PkgManager)
 
-	config.PrintConfig(cfg)
+	config.Print(cfg)
 	utils.PromptConfirm("Do you want to proceed with this configuration?", "ERROR: Failed to load config (user aborted)", exit_codes.WRONG_CONFIG)
 	logger.Info("Proceeding with the installation...")
 
@@ -134,8 +134,12 @@ func determineConfigFile(handler shell.Shell) string {
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
 			logger.Warn("Config file not found at " + configFile)
 			utils.PromptConfirm("Do you want to use the default config? [Y/n]", "User denied using default config.", exit_codes.NO_CONFIG)
-			handler.Curl("https://raw.githubusercontent.com/kurekszymon/eddy.sh/refs/heads/main/config.yaml", eddy_dir)
 
+			err := handler.Curl("https://raw.githubusercontent.com/kurekszymon/eddy.sh/refs/heads/main/config.yaml", eddy_dir)
+			if err != nil {
+				logger.Error("Failed to download default config: " + err.Error())
+				os.Exit(exit_codes.NO_CONFIG)
+			}
 			determineConfigFile(handler)
 		}
 	}

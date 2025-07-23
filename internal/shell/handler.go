@@ -64,7 +64,7 @@ func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
 		return err
 	}
 
-	message := fmt.Sprintf("Successfully cloned %s into %s\n", repoURL, cloneDir)
+	message := fmt.Sprintf("Successfully cloned %s into %s", repoURL, cloneDir)
 	logger.Info(message)
 	return nil
 }
@@ -103,9 +103,13 @@ func (s *ShellHandler) Unzip(archivePath string, targetDir string) error {
 
 func (s *ShellHandler) RunScriptFile(filename string) error {
 	filename = utils.ExpandPath(filename)
-	os.Chmod(filename, 0755)
 
-	err := s.run(filename)
+	err := os.Chmod(filename, 0755)
+	if err != nil {
+		return err
+	}
+
+	err = s.run(filename)
 	if err != nil {
 		return err
 	}
@@ -130,7 +134,10 @@ func (s *ShellHandler) RunCustomScript(script string) error {
 func (s *ShellHandler) RunScriptFileInDir(filename string, dir string, args ...string) error {
 	scriptPath := utils.ExpandPath(filepath.Join(dir, filename))
 
-	os.Chmod(scriptPath, 0755)
+	err := os.Chmod(scriptPath, 0755)
+	if err != nil {
+		return err
+	}
 
 	command := scriptPath
 	for _, arg := range args {
@@ -138,7 +145,7 @@ func (s *ShellHandler) RunScriptFileInDir(filename string, dir string, args ...s
 		command = fmt.Sprintf("%s %s", command, arg)
 	}
 
-	err := s.run(command)
+	err = s.run(command)
 	if err != nil {
 		return fmt.Errorf("failed to run script file in directory: %w", err)
 	}
@@ -191,12 +198,18 @@ func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
 
 	go func() {
 		defer wg.Done()
-		io.Copy(os.Stdout, stdout)
+		_, err := io.Copy(os.Stdout, stdout)
+		if err != nil {
+			logger.Error("Failed to copy stdout: " + err.Error())
+		}
 	}()
 
 	go func() {
 		defer wg.Done()
-		io.Copy(os.Stderr, stderr)
+		_, err := io.Copy(os.Stderr, stderr)
+		if err != nil {
+			logger.Error("Failed to copy stdout: " + err.Error())
+		}
 	}()
 
 	wg.Wait()

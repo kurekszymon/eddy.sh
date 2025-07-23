@@ -18,6 +18,10 @@ func (m *MockEddyDirShell) GetEddyDir() (string, error) {
 
 func (m *MockEddyDirShell) GetEddyBinDir() (string, error) {
 	dir := filepath.Join(m.TempDir, "bin")
-	utils.EnsureDir(dir)
+
+	err := utils.EnsureDir(dir)
+	if err != nil {
+		return "", err
+	}
 	return dir, nil
 }

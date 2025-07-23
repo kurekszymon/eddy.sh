@@ -16,7 +16,11 @@ func PromptConfirm(prompt string, errorMessage string, codes ...int) {
 	logger.Prompt("Type [Y] or [y] to continue")
 
 	var i string
-	fmt.Scan(&i)
+	_, err := fmt.Scan(&i)
+
+	if err != nil {
+		logger.Error("Failed to read input: " + err.Error())
+	}
 
 	if i != "Y" && i != "y" {
 		if len(errorMessage) > 0 {
@@ -128,7 +132,11 @@ func getLatestReleaseFromGithub(owner string, repo string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch latest release for %s", repoURL)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.Error("Failed to close response body: " + err.Error())
+		}
+	}()
 
 	if resp.StatusCode != http.StatusFound && resp.StatusCode != http.StatusSeeOther && resp.StatusCode != http.StatusTemporaryRedirect {
 		return "", fmt.Errorf("failed to fetch latest release: unexpected status code: %d", resp.StatusCode)
