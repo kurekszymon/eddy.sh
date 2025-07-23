@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/kurekszymon/eddy.sh/internal/exit_codes"
+	"github.com/kurekszymon/eddy.sh/internal/globals"
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
@@ -24,9 +25,9 @@ func (s *ShellHandler) GetEddyDir() (string, error) {
 		return "", fmt.Errorf("failed to get user home directory: %w", err)
 	}
 
-	eddyDir := ExpandPath(filepath.Join(homeDir, ".eddy.sh"))
+	eddyDir := utils.ExpandPath(filepath.Join(homeDir, ".eddy.sh"))
 
-	err = s.ensureDir(eddyDir)
+	err = utils.EnsureDir(eddyDir)
 	if err != nil {
 		return "", err
 	}
@@ -40,9 +41,9 @@ func (s *ShellHandler) GetEddyBinDir() (string, error) {
 		return "", err
 	}
 
-	eddyBinDir := ExpandPath(filepath.Join(eddyDir, "bin"))
+	eddyBinDir := utils.ExpandPath(filepath.Join(eddyDir, "bin"))
 
-	err = s.ensureDir(eddyBinDir)
+	err = utils.EnsureDir(eddyBinDir)
 	if err != nil {
 		return "", err
 	}
@@ -56,9 +57,9 @@ func (s *ShellHandler) GitClone(repoURL string, cloneDir string) error {
 		repoName = repoName[:len(repoName)-len(".git")]
 	}
 
-	cloneDir = ExpandPath(filepath.Join(cloneDir, repoName))
+	cloneDir = utils.ExpandPath(filepath.Join(cloneDir, repoName))
 
-	err := s.run("git clone --progress %s %s 2>&1", repoURL, ExpandPath(cloneDir))
+	err := s.run("git clone --progress %s %s 2>&1", repoURL, utils.ExpandPath(cloneDir))
 	if err != nil {
 		return err
 	}
@@ -86,7 +87,7 @@ func (s *ShellHandler) Echo(message string) error {
 }
 
 func (s *ShellHandler) Unzip(archivePath string, targetDir string) error {
-	err := s.ensureDir(targetDir)
+	err := utils.EnsureDir(targetDir)
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func (s *ShellHandler) Unzip(archivePath string, targetDir string) error {
 }
 
 func (s *ShellHandler) RunScriptFile(filename string) error {
-	filename = ExpandPath(filename)
+	filename = utils.ExpandPath(filename)
 	os.Chmod(filename, 0755)
 
 	err := s.run(filename)
@@ -127,7 +128,7 @@ func (s *ShellHandler) RunCustomScript(script string) error {
 }
 
 func (s *ShellHandler) RunScriptFileInDir(filename string, dir string, args ...string) error {
-	scriptPath := ExpandPath(filepath.Join(dir, filename))
+	scriptPath := utils.ExpandPath(filepath.Join(dir, filename))
 
 	os.Chmod(scriptPath, 0755)
 
@@ -147,9 +148,9 @@ func (s *ShellHandler) RunScriptFileInDir(filename string, dir string, args ...s
 // This is the main function to run a command in the shell.
 // Note: The command is executed in a shell, so shell features like pipes and redirection are available
 func (s *ShellHandler) run(command string, args ...string) error {
-	command = FormatArgs(command, args)
+	command = utils.FormatArgs(command, args)
 
-	if DebugEnabled {
+	if globals.DebugEnabled {
 		logger.Debug("Running command: " + command)
 	}
 
@@ -181,18 +182,6 @@ func (s *ShellHandler) run(command string, args ...string) error {
 		return fmt.Errorf("command '%s' failed: %w", command, err)
 	}
 
-	return nil
-}
-
-func (s *ShellHandler) ensureDir(path string) error {
-	_, err := os.Stat(path)
-	if err == nil {
-		return nil
-	}
-	err = os.MkdirAll(path, 0755)
-	if err != nil {
-		return fmt.Errorf("failed to create directory %s: %w", path, err)
-	}
 	return nil
 }
 

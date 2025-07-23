@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/kurekszymon/eddy.sh/internal/logger"
 	"github.com/kurekszymon/eddy.sh/internal/types"
 )
 
-func PromptConfirm(prompt string, error_message string, codes ...int) {
+func PromptConfirm(prompt string, errorMessage string, codes ...int) {
 	logger.Prompt(prompt)
 	logger.Prompt("Type [Y] or [y] to continue")
 
@@ -18,9 +19,9 @@ func PromptConfirm(prompt string, error_message string, codes ...int) {
 	fmt.Scan(&i)
 
 	if i != "Y" && i != "y" {
-		if len(error_message) > 0 {
+		if len(errorMessage) > 0 {
 
-			logger.Error(error_message)
+			logger.Error(errorMessage)
 		}
 
 		if len(codes) > 0 {
@@ -74,6 +75,43 @@ func HandleFlags() map[Flags]string {
 	}
 
 	return flags
+}
+
+func ExpandPath(path string) string {
+	if strings.HasPrefix(path, "~") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			logger.Error("Failed to get user home directory: " + err.Error())
+			return path
+		}
+		return filepath.Join(home, path[2:])
+	}
+	abs, err := filepath.Abs(path)
+	if err == nil {
+		return abs
+	}
+	return path
+}
+
+func EnsureDir(path string) error {
+	_, err := os.Stat(path)
+	if err == nil {
+		return nil
+	}
+	err = os.MkdirAll(path, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", path, err)
+	}
+	return nil
+}
+
+func FormatArgs(command string, args []string) string {
+	interfaceArgs := make([]any, len(args))
+	for i, v := range args {
+		interfaceArgs[i] = v
+	}
+
+	return fmt.Sprintf(command, interfaceArgs...)
 }
 
 func getLatestReleaseFromGithub(owner string, repo string) (string, error) {

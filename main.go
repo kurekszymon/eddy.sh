@@ -24,7 +24,7 @@ func main() {
 
 	configFile := determineConfigFile(handler)
 
-	yaml, err := config.Load(shell.ExpandPath(configFile))
+	yaml, err := config.Load(utils.ExpandPath(configFile))
 
 	if err != nil {
 		logger.Error("Failed to load config, please check " + configFile)
