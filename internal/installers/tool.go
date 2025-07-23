@@ -2,7 +2,6 @@ package installers
 
 import "fmt"
 
-// maybe tool was better name?
 type Tool struct {
 	Name        string
 	Version     string
