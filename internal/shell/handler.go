@@ -1,13 +1,13 @@
 package shell
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sync"
 
 	"github.com/kurekszymon/eddy.sh/internal/exit_codes"
 	"github.com/kurekszymon/eddy.sh/internal/logger"
@@ -58,7 +58,7 @@ func (s *ShellHandler) Curl(url string) error {
 		return err
 	}
 
-	command := fmt.Sprintf("curl -fL --output-dir %s -O %s", eddyDir, url)
+	command := fmt.Sprintf("curl -fL --progress-bar --output-dir %s -O %s", eddyDir, url)
 	err = s.run(command)
 	if err != nil {
 		return err
@@ -158,7 +158,6 @@ func (s *ShellHandler) run(command string, args ...string) error {
 
 	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
 	stdout, err := cmd.StdoutPipe()
-
 	if err != nil {
 		return fmt.Errorf("failed to get stdout pipe: %w", err)
 	}
@@ -168,16 +167,14 @@ func (s *ShellHandler) run(command string, args ...string) error {
 		return fmt.Errorf("failed to get stderr pipe: %w", err)
 	}
 
-	cmd.Start()
-	s.handlePipes(stdout, stderr)
-	err = cmd.Wait()
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start command '%s': %w", command, err)
+	}
 
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			if exitError.ExitCode() != 0 {
-				return fmt.Errorf("command %s failed with exit code %d", command, exitError.ExitCode())
-			}
-		}
+	s.handlePipes(stdout, stderr)
+
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("command '%s' failed: %w", command, err)
 	}
 
 	return nil
@@ -196,64 +193,18 @@ func (s *ShellHandler) ensureDir(path string) error {
 }
 
 func (s *ShellHandler) handlePipes(stdout io.Reader, stderr io.Reader) {
-	stdoutChan := make(chan string)
-	stderrChan := make(chan string)
+	var wg sync.WaitGroup
+	wg.Add(2)
 
 	go func() {
-		stdoutReader := bufio.NewReader(stdout)
-		for {
-			line, err := stdoutReader.ReadString('\n')
-			if err != nil {
-				if err != io.EOF {
-					logger.Error("Error reading from stdout")
-				}
-				close(stdoutChan)
-				return
-			}
-
-			if DebugEnabled {
-				line = logger.FormatLogType(line, logger.LogDebug)
-			}
-			stdoutChan <- line
-		}
+		defer wg.Done()
+		io.Copy(os.Stdout, stdout)
 	}()
 
 	go func() {
-		stderrReader := bufio.NewReader(stderr)
-		for {
-			line, err := stderrReader.ReadString('\n')
-			if err != nil {
-				if err != io.EOF {
-					logger.Info("Error reading from stderr")
-				}
-				close(stderrChan)
-				return
-			}
-			if DebugEnabled {
-				line = logger.FormatLogType(line, logger.LogDebug)
-			}
-			stderrChan <- line
-		}
+		defer wg.Done()
+		io.Copy(os.Stderr, stderr)
 	}()
 
-	for {
-		select {
-		case line, ok := <-stdoutChan:
-			if !ok {
-				stdoutChan = nil
-			} else {
-				fmt.Print(line)
-			}
-		case line, ok := <-stderrChan:
-			if !ok {
-				stderrChan = nil
-			} else {
-				fmt.Print(line)
-			}
-		}
-
-		if stdoutChan == nil && stderrChan == nil {
-			break
-		}
-	}
+	wg.Wait()
 }

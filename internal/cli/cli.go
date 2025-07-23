@@ -107,6 +107,9 @@ Usage:
   eddy.sh install <tool> [version]   Install a specific tool or tool group (optionally specify version)
   eddy.sh help                       Show this help message
 
+Flags (can be placed after the main command):
+  --config, -c <file>        Use a custom config file (default: ~/.eddy.sh/config.yaml)
+
 Examples:
   eddy.sh install nvm                Install Node Version Manager (nvm) (latest version)
   eddy.sh install nvm 0.40.3         Install Node Version Manager (nvm) version 0.40.3
