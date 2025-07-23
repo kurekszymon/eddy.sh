@@ -8,56 +8,43 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/types"
 )
 
-type Tools struct {
+type Installer struct {
 	Shell      *shell.ShellHandler
 	PkgManager types.PkgManager
 	CloneDir   string
 
-	Emscripten *installers.Tool
-	Ninja      *installers.Tool
-	Cmake      *installers.Tool
-	NotLoaded  *[]installers.Tool
+	Available map[string]*installers.Tool
+	NotLoaded []installers.Tool
 }
 
-func (c *Tools) SetTool(toolName string, tool *installers.Tool) {
-	switch strings.ToLower(toolName) {
+func (c *Installer) SetTool(toolName string, tool *installers.Tool) {
+	toolKey := strings.ToLower(toolName)
+
+	if c.Available == nil {
+		c.Available = make(map[string]*installers.Tool)
+	}
+
+	switch toolKey {
 	case "emscripten":
 		tool.InstallFunc = c.EmscriptenInstall
-		c.Emscripten = tool
 	case "ninja":
 		tool.InstallFunc = c.NinjaInstall
-		c.Ninja = tool
 	case "cmake":
 		tool.InstallFunc = c.CmakeInstall
-		c.Cmake = tool
-
 	default:
-		if c.NotLoaded == nil {
-			c.NotLoaded = &[]installers.Tool{}
-		}
-		*c.NotLoaded = append(*c.NotLoaded, *tool)
+		c.NotLoaded = append(c.NotLoaded, *tool)
+		return
 	}
 
+	c.Available[toolKey] = tool
 }
 
-func (c *Tools) Install() map[string]error {
+func (c *Installer) Install() map[string]error {
 	errors := make(map[string]error)
 
-	if c.Emscripten != nil {
-		if err := c.Emscripten.Install(); err != nil {
-			errors["Emscripten"] = err
-		}
-	}
-
-	if c.Ninja != nil {
-		if err := c.Ninja.Install(); err != nil {
-			errors["Ninja"] = err
-		}
-	}
-
-	if c.Cmake != nil {
-		if err := c.Cmake.Install(); err != nil {
-			errors["CMake"] = err
+	for name, tool := range c.Available {
+		if err := tool.Install(); err != nil {
+			errors[name] = err
 		}
 	}
 

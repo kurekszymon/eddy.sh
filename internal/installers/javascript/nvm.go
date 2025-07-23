@@ -10,43 +10,43 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
-func (c *Tools) NvmInstall() error {
+func (j *Installer) NvmInstall() error {
 	if runtime.GOOS == "windows" {
 		return errors.New("NVM installation is not yet supported on Windows. Please use NVM for Windows")
 	}
 
-	if c.PkgManager == types.Brew {
-		return c.brewNvm()
+	if j.PkgManager == types.Brew {
+		return j.brewNvm()
 	}
 
-	return c.manualNvm()
+	return j.manualNvm()
 }
 
-func (c *Tools) brewNvm() error {
+func (j *Installer) brewNvm() error {
 	logger.Warn("Note: NVM is not available via Homebrew. It will be installed manually.")
-	return c.manualNvm()
+	return j.manualNvm()
 }
 
-func (c *Tools) manualNvm() error {
-	version, err := utils.DetermineVersion(c.Nvm.Version, types.GHRepo{Name: "nvm", Owner: "nvm-sh"})
+func (j *Installer) manualNvm() error {
+	version, err := utils.DetermineVersion(j.Available["nvm"].Version, types.GHRepo{Name: "nvm", Owner: "nvm-sh"})
 	if err != nil {
 		return err
 	}
 
-	logger.Info("Downloading NVM version " + c.Nvm.Version)
+	logger.Info("Downloading NVM version " + j.Available["nvm"].Version)
 
 	nvm_url := fmt.Sprintf("https://raw.githubusercontent.com/nvm-sh/nvm/v%s/install.sh", version)
-	err = c.Shell.Curl(nvm_url)
+	err = j.Shell.Curl(nvm_url)
 	if err != nil {
 		return err
 	}
 
-	eddy_dir, err := c.Shell.GetEddyDir()
+	eddy_dir, err := j.Shell.GetEddyDir()
 	if err != nil {
 		return err
 	}
 
-	err = c.Shell.RunScriptFileInDir("install.sh", eddy_dir)
+	err = j.Shell.RunScriptFileInDir("install.sh", eddy_dir)
 	if err != nil {
 		return err
 	}

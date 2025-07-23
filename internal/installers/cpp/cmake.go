@@ -10,7 +10,7 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
-func (c *Tools) CmakeInstall() error {
+func (c *Installer) CmakeInstall() error {
 	if c.PkgManager == types.Brew {
 		return c.brewCmake()
 	}
@@ -18,7 +18,7 @@ func (c *Tools) CmakeInstall() error {
 	return c.manualCmake()
 }
 
-func (c *Tools) brewCmake() error {
+func (c *Installer) brewCmake() error {
 	logger.Info("Installing cmake using brew")
 	err := c.Shell.Brew("cmake")
 	if err != nil {
@@ -28,12 +28,12 @@ func (c *Tools) brewCmake() error {
 	return nil
 }
 
-func (c *Tools) manualCmake() error {
+func (c *Installer) manualCmake() error {
 	logger.Info("Installing CMake manually")
 	var cmake_dir string
 	var cmake_bin_path string
 	var url string
-	version, err := utils.DetermineVersion(c.Cmake.Version, types.GHRepo{Name: "CMake", Owner: "Kitware"})
+	version, err := utils.DetermineVersion(c.Available["cmake"].Version, types.GHRepo{Name: "CMake", Owner: "Kitware"})
 
 	if err != nil {
 		return err

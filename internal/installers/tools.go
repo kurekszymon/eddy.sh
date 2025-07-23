@@ -5,18 +5,27 @@ import (
 	"runtime"
 
 	"github.com/kurekszymon/eddy.sh/internal/shell"
+	"github.com/kurekszymon/eddy.sh/internal/types"
 )
 
-type Tools struct {
+type GeneralTools struct {
 	Shell *shell.ShellHandler
 
 	Git  *Tool
 	Brew *Tool
 }
 
-func GetTools(shell *shell.ShellHandler) *Tools {
-	return &Tools{
-		Shell: shell,
+type Tools struct {
+	Shell      *shell.ShellHandler
+	PkgManager types.PkgManager
+	CloneDir   string
+
+	Available map[string]*Tool
+	NotLoaded []Tool
+}
+
+func GetTools(shell *shell.ShellHandler) *GeneralTools {
+	return &GeneralTools{
 		Git: &Tool{
 			Name:    "git",
 			Version: "latest",

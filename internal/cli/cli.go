@@ -53,11 +53,11 @@ func HandleArgs(handler *shell.ShellHandler, cfg *config.Config) {
 		case "javascript", "js":
 			loadTool(cfg.Installers.Javascript, "nvm", "latest")
 
-			install(cfg.Installers.Javascript.Nvm)
+			install(cfg.Installers.Javascript.Available["Nvm"])
 		case "nvm":
 			loadTool(cfg.Installers.Javascript, "nvm", version)
 
-			install(cfg.Installers.Javascript.Nvm)
+			install(cfg.Installers.Javascript.Available["Nvm"])
 
 		// c++
 		case "cpp", "c++":
@@ -65,19 +65,19 @@ func HandleArgs(handler *shell.ShellHandler, cfg *config.Config) {
 			loadTool(cfg.Installers.Cpp, "emscripten", "latest")
 			loadTool(cfg.Installers.Cpp, "cmake", "latest")
 
-			install(cfg.Installers.Cpp.Cmake)
-			install(cfg.Installers.Cpp.Emscripten)
-			install(cfg.Installers.Cpp.Ninja)
+			install(cfg.Installers.Cpp.Available["cmake"])
+			install(cfg.Installers.Cpp.Available["emscripten"])
+			install(cfg.Installers.Cpp.Available["ninja"])
 		case "cmake":
 			loadTool(cfg.Installers.Cpp, "cmake", version)
-			install(cfg.Installers.Cpp.Cmake)
+			install(cfg.Installers.Cpp.Available["cmake"])
 		case "emscripten":
 			loadTool(cfg.Installers.Cpp, "emscripten", version)
-			install(cfg.Installers.Cpp.Emscripten)
+			install(cfg.Installers.Cpp.Available["emscripten"])
 		case "ninja":
 			loadTool(cfg.Installers.Cpp, "ninja", version)
 
-			install(cfg.Installers.Cpp.Ninja)
+			install(cfg.Installers.Cpp.Available["ninja"])
 
 		default:
 			logger.Error("Unknown tool " + tool)
@@ -106,7 +106,7 @@ func install(tool *installers.Tool) {
 
 }
 
-func loadTool(group installers.ToolSetter, name string, version string) {
+func loadTool(group installers.Installer, name string, version string) {
 	tool := &installers.Tool{
 		Name:    name,
 		Version: version,

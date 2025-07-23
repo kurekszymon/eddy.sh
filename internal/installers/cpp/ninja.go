@@ -11,7 +11,7 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
-func (c *Tools) NinjaInstall() error {
+func (c *Installer) NinjaInstall() error {
 	if c.PkgManager == types.Brew {
 		return c.brewNinja()
 	}
@@ -19,7 +19,7 @@ func (c *Tools) NinjaInstall() error {
 	return c.manualNinja()
 }
 
-func (c *Tools) brewNinja() error {
+func (c *Installer) brewNinja() error {
 	logger.Info("Installing ninja using brew")
 	err := c.Shell.Brew("ninja")
 	if err != nil {
@@ -29,8 +29,9 @@ func (c *Tools) brewNinja() error {
 	return nil
 }
 
-func (c *Tools) manualNinja() error {
-	version, err := utils.DetermineVersion(c.Ninja.Version, types.GHRepo{Name: "ninja", Owner: "ninja-build"})
+// TODO: replace strings with typed constants
+func (c *Installer) manualNinja() error {
+	version, err := utils.DetermineVersion(c.Available["ninja"].Version, types.GHRepo{Name: "ninja", Owner: "ninja-build"})
 	if err != nil {
 		return err
 	}

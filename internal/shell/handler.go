@@ -14,6 +14,10 @@ import (
 	"github.com/kurekszymon/eddy.sh/internal/utils"
 )
 
+func NewShellHandler() *ShellHandler {
+	return &ShellHandler{}
+}
+
 func (s *ShellHandler) GetEddyDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
