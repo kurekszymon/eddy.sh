@@ -122,20 +122,21 @@ func determineConfigFile(handler shell.Shell) string {
 	if flags[utils.Config] != "" {
 		configFile = flags[utils.Config]
 	} else {
-		eddy_dir, err := handler.GetEddyDir()
+		eddyDir, err := handler.GetEddyDir()
 
 		if err != nil {
 			logger.Error("Failed to get Eddy directory: " + err.Error())
 			os.Exit(exit_codes.SOMETHING_WENT_WRONG)
 		}
 
-		configFile = path.Join(eddy_dir, "config.yaml")
+		configFile = path.Join(eddyDir, "config.yaml")
 
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
 			logger.Warn("Config file not found at " + configFile)
 			utils.PromptConfirm("Do you want to use the default config? [Y/n]", "User denied using default config.", exit_codes.NO_CONFIG)
 
-			err := handler.Curl("https://raw.githubusercontent.com/kurekszymon/eddy.sh/refs/heads/main/config.yaml", eddy_dir)
+			logger.Info("Downloading default config to " + configFile)
+			err := handler.Curl("https://raw.githubusercontent.com/kurekszymon/eddy.sh/refs/heads/main/config.yaml", eddyDir)
 			if err != nil {
 				logger.Error("Failed to download default config: " + err.Error())
 				os.Exit(exit_codes.NO_CONFIG)

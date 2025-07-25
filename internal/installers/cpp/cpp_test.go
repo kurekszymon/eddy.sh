@@ -63,7 +63,7 @@ func Test_NinjaManualInstall(t *testing.T) {
 	errors := installer.Install()
 
 	if len(errors) > 0 {
-		t.Fatalf("Cmake.Install() error = %v", errors)
+		t.Fatalf("Ninja.Install() error = %v", errors)
 	}
 
 	expectedFile := filepath.Join(tempDir, "bin", "ninja")
