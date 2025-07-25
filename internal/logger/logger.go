@@ -39,33 +39,33 @@ func FormatLogType(message string, logType LogType) string {
 		color = reset
 	}
 
-	fmt_type := fmt.Sprintf("%s[%s]%s", color, logType, reset)
+	formattedType := fmt.Sprintf("%s[%s]%s", color, logType, reset)
 
-	fmt_message := fmt.Sprintf("[eddy.sh]%s: %s", fmt_type, message)
-	return fmt_message
+	formattedMessage := fmt.Sprintf("[eddy.sh]%s: %s", formattedType, message)
+	return formattedMessage
 }
 
 func Info(message string) {
-	fmt_message := FormatLogType(message, LogInfo)
-	fmt.Println(fmt_message)
+	formattedMessage := FormatLogType(message, LogInfo)
+	fmt.Println(formattedMessage)
 }
 
 func Warn(message string) {
-	fmt_message := FormatLogType(message, LogWarning)
-	fmt.Println(fmt_message)
+	formattedMessage := FormatLogType(message, LogWarning)
+	fmt.Println(formattedMessage)
 }
 
 func Error(message string) {
-	fmt_message := FormatLogType(message, LogError)
-	fmt.Println(fmt_message)
+	formattedMessage := FormatLogType(message, LogError)
+	fmt.Println(formattedMessage)
 }
 
 func Debug(message string) {
-	fmt_message := FormatLogType(message, LogDebug)
-	fmt.Println(fmt_message)
+	formattedMessage := FormatLogType(message, LogDebug)
+	fmt.Println(formattedMessage)
 }
 
 func Prompt(message string) {
-	fmt_message := FormatLogType(message, LogPrompt)
-	fmt.Println(fmt_message)
+	formattedMessage := FormatLogType(message, LogPrompt)
+	fmt.Println(formattedMessage)
 }
