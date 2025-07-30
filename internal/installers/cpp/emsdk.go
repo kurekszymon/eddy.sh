@@ -2,6 +2,7 @@ package cpp
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	"github.com/kurekszymon/eddy.sh/internal/logger"
@@ -28,10 +29,10 @@ func (c *Installer) brewEmsdk() error {
 
 func (c *Installer) manualEmsdk() error {
 	err := c.Shell.CheckCommand("git")
-
 	if err != nil {
 		return errors.New("git is not installed. Please install git before proceeding with emscripten installation")
 	}
+	version := c.Available["emscripten"].Version
 
 	eddyDir, err := c.Shell.GetEddyDir()
 	if err != nil {
@@ -47,15 +48,17 @@ func (c *Installer) manualEmsdk() error {
 
 	emsdkDir := filepath.Join(eddyDir, "emsdk")
 
-	logger.Info("Running `emscripten install latest`")
-	err = c.Shell.RunScriptFileInDir("emsdk", emsdkDir, "install", "latest")
+	msg := fmt.Sprintf("Running `emscripten install %s`", version)
+	logger.Info(msg)
+	err = c.Shell.RunScriptFileInDir("emsdk", emsdkDir, "install", version)
 
 	if err != nil {
 		return err
 	}
 
-	logger.Info("Running `emscripten activate latest`")
-	err = c.Shell.RunScriptFileInDir("emsdk", emsdkDir, "activate", "latest")
+	msg = fmt.Sprintf("Running `emscripten activate %s`", version)
+	logger.Info(msg)
+	err = c.Shell.RunScriptFileInDir("emsdk", emsdkDir, "activate", version)
 
 	if err != nil {
 		return err
