@@ -1,3 +1,5 @@
-import { mod } from './lib/mod'
+import { cpp } from "./lib/languages/cpp";
 
-console.log(`${mod.hello()} via Bun!`);
+Object.entries(cpp).forEach(([k, v]) => {
+    console.log(k, " - ", v());
+});
