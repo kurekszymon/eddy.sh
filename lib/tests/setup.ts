@@ -1,16 +1,17 @@
 import { mock, beforeAll, afterAll } from "bun:test";
+
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-export let tmpDir: string;
+export const tmpDir = path.join(os.tmpdir(), "eddy-test");
+
+mock.module("os", () => ({
+    homedir: () => tmpDir,
+}));
 
 beforeAll(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "eddy-test-"));
-
-    mock.module("os", () => ({
-        homedir: () => tmpDir,
-    }));
+    fs.mkdtempSync(tmpDir);
 });
 
 afterAll(() => {
