@@ -1,7 +1,7 @@
-import { homedir } from 'os';
+import os from 'os';
 import path from 'path';
 
-const homeDir = homedir();
+const homeDir = os.homedir();
 
 const EDDY_DIR = path.join(homeDir, '.eddy.sh');
 const EDDY_BIN_DIR = path.join(EDDY_DIR, 'bin');
