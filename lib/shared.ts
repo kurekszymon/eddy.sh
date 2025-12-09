@@ -1,6 +1,8 @@
 import fs from 'fs';
-import { EDDY_BIN_DIR } from './consts';
+import path from 'path';
 
-export const createEddyDirs = () => {
-    return fs.mkdirSync(EDDY_BIN_DIR, { mode: 0o755, recursive: true });
+import { EDDY_DIR } from './consts';
+
+export const createToolDir = (dirName: string) => {
+    return fs.mkdirSync(path.join(EDDY_DIR, dirName), { mode: 0o755, recursive: true });
 };

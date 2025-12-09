@@ -7,12 +7,12 @@ import { tmpDir } from "./setup";
 
 
 test("creates files in temp home", async () => {
-    const { createEddyDirs } = await import("../shared");
-    createEddyDirs();
+    const { createToolDir } = await import("../shared");
 
-    const eddyDir = path.join(tmpDir, '.eddy.sh');
-    expect(fs.existsSync(eddyDir)).toBe(true);
+    const dirName = 'test';
+    createToolDir(dirName);
 
-    const eddyBinDir = path.join(eddyDir, 'bin');
-    expect(fs.existsSync(eddyBinDir)).toBe(true);
+    const dir = path.join(tmpDir, '.eddy.sh', dirName);
+
+    expect(fs.existsSync(dir)).toBe(true);
 });
