@@ -1,5 +1,3 @@
 [test]
 preload = ["./lib/tests/setup.ts"]
-
-coverage = true
 coveragePathIgnorePatterns = ["**/tests/*.ts"]

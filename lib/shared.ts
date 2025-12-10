@@ -22,10 +22,14 @@ export const createToolDir = (dirName: string) => {
 export const downloadFile = (filePath: string, url: string, maxRedirects = 5): Promise<string> => {
     return new Promise((resolve, reject) => {
         const file = fs.createWriteStream(filePath);
+        const fileName = filePath.split('/').at(-1);
 
         const cleanupAndReject = (err: Error) => {
             try { file.close(); } catch (_) { }
-            fs.unlink(filePath, () => reject(err));
+            fs.unlink(filePath, () => {
+                console.log('\n');
+                reject(err);
+            });
         };
 
         const request = (currentUrl: string, redirectsLeft: number) => {
@@ -54,17 +58,33 @@ export const downloadFile = (filePath: string, url: string, maxRedirects = 5): P
                 response.on('data', (chunk: Buffer) => {
                     downloaded += chunk.length;
                     if (total) {
-                        const percent = ((downloaded / total) * 100).toFixed(2);
-                        logger.info(`Downloading progress: ${percent}%`);
+                        // TODO: extract progress bar logic
+                        const percent = ((downloaded / total) * 100);
+                        if (process.stdout?.isTTY) {
+                            process.stdout.clearLine(0);
+                            process.stdout.cursorTo(0);
+                            process.stdout.write(`Downloading ${fileName}: [${'='.repeat(percent / 4)}${' '.repeat(25 - percent / 4)}] ${percent}%`);
+                        } else {
+                            logger.info(`Downloading ${fileName}: ${percent.toFixed(2)}%`);
+                        }
                     } else {
-                        logger.info(`Downloading progress: ${downloaded} bytes`);
+                        if (process.stdout?.isTTY) {
+                            process.stdout.clearLine(0);
+                            process.stdout.cursorTo(0);
+                            process.stdout.write(`Downloading ${fileName}: ${formatBytes(downloaded)} bytes`);
+                        } else {
+                            logger.info(`Downloading ${fileName}: ${formatBytes(downloaded)} bytes`);
+                        }
                     }
                 });
 
                 response.pipe(file);
 
                 file.on('finish', () => {
-                    file.close(() => resolve(filePath));
+                    file.close(() => {
+                        resolve(filePath);
+                        console.log('\n');
+                    });
                 });
 
                 response.on('error', (err) => cleanupAndReject(err));
@@ -80,3 +100,9 @@ export const downloadFile = (filePath: string, url: string, maxRedirects = 5): P
         request(url, maxRedirects);
     });
 };
+
+export function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
