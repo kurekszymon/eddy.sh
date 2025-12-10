@@ -2,11 +2,16 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 
-import { EDDY_DIR } from '@/lib/consts';
+import { EDDY_BIN_DIR, EDDY_DIR } from '@/lib/consts';
 import { logger } from '@/lib/logger';
+import { execFile } from 'child_process';
 
-export const createToolDir = (dirName: string) => {
+export const ensureToolDir = (dirName: string) => {
     const dir = path.join(EDDY_DIR, dirName);
+
+    if (fs.existsSync(dir)) {
+        return dir;
+    }
 
     try {
         fs.mkdirSync(dir, { mode: 0o755, recursive: true });
@@ -22,7 +27,7 @@ export const createToolDir = (dirName: string) => {
 export const downloadFile = (filePath: string, url: string, maxRedirects = 5): Promise<string> => {
     return new Promise((resolve, reject) => {
         const file = fs.createWriteStream(filePath);
-        const fileName = filePath.split('/').at(-1);
+        const fileName = path.basename(filePath);
 
         const cleanupAndReject = (err: Error) => {
             try { file.close(); } catch (_) { }
@@ -100,6 +105,49 @@ export const downloadFile = (filePath: string, url: string, maxRedirects = 5): P
         request(url, maxRedirects);
     });
 };
+
+/**
+ * extracts and archive using `tar -xf archivePath -C outDir`
+ * @param archivePath
+ * @param outDir
+ */
+export function extract(archivePath: string, outDir: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (!fs.existsSync(outDir)) {
+            // ensure dir exists
+            fs.mkdirSync(outDir, { recursive: true });
+        }
+
+        execFile('tar', ['-xf', archivePath, '-C', outDir], (err, _, stderr) => {
+            if (err) {
+                return reject(new Error(`Extraction failed: ${stderr || err.message}`));
+            }
+            resolve();
+        });
+    });
+}
+
+/**
+ * creates a symbolic link between `outDir/filename` and `~/.eddy.sh/bin/filename`
+ * @param dir
+ * @param filename
+ */
+export function symlink(dir: string, filename: string) {
+    if (!fs.existsSync(EDDY_BIN_DIR)) {
+        fs.mkdirSync(EDDY_BIN_DIR, { mode: 0o755, recursive: true });
+    }
+
+    const target = path.join(EDDY_BIN_DIR, filename);
+    try {
+        if (fs.existsSync(target)) {
+            fs.unlinkSync(target);
+        }
+        fs.symlinkSync(path.join(dir, filename), target);
+    } catch (err) {
+        logger.error(`Failed to create symlink: ${err}`);
+    }
+}
+
 
 export function formatBytes(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;

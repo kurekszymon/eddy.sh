@@ -1,4 +1,4 @@
-import { mock, beforeAll, afterAll } from "bun:test";
+import { mock, beforeEach, afterEach } from "bun:test";
 
 import fs from 'fs';
 import path from 'path';
@@ -10,10 +10,10 @@ mock.module("os", () => ({
     homedir: () => tmpDir,
 }));
 
-beforeAll(() => {
+beforeEach(() => {
     fs.mkdtempSync(tmpDir);
 });
 
-afterAll(() => {
+afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
 });

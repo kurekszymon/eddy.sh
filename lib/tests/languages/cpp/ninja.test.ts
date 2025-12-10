@@ -1,6 +1,8 @@
+import { EDDY_BIN_DIR } from "@/lib/consts";
 import { describe, expect, test } from "bun:test";
 
 import fs from 'fs';
+import path from 'path';
 
 describe('cpp/ninja', async () => {
     const cpp = await import("@/lib/languages/cpp/ninja");
@@ -15,8 +17,18 @@ describe('cpp/ninja', async () => {
     });
 
     test("installs ninja", async () => {
-        const dir = await ninja.download();
+        const { ensureToolDir } = await import("@/lib/shared");
 
-        expect(fs.existsSync(dir)).toBe(true);
+        const dir = ensureToolDir('cpp/ninja');
+        await ninja.install();
+
+        const bin = path.join(dir, 'ninja');
+
+        const symlinkPath = path.join(EDDY_BIN_DIR, 'ninja');
+        const symlinkStats = fs.lstatSync(symlinkPath);
+        expect(symlinkStats.isSymbolicLink()).toBe(true);
+
+        const target = fs.readlinkSync(symlinkPath);
+        expect(target).toBe(path.join(dir, 'ninja'));
     });
 });
