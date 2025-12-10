@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 
-import { EDDY_DIR } from './consts';
-import { logger } from './logger';
+import { EDDY_DIR } from '@/lib/consts';
+import { logger } from '@/lib/logger';
 
 export const createToolDir = (dirName: string) => {
     const dir = path.join(EDDY_DIR, dirName);
