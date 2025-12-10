@@ -17,7 +17,6 @@ test("downloads file", async () => {
     const dir = createToolDir('test');
     const filePath = path.join(dir, 'Makefile');
 
-
     await downloadFile(filePath, 'https://github.com/kurekszymon/eddy.sh/blob/main/Makefile');
 
     expect(fs.existsSync(filePath)).toBe(true);

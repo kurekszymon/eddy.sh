@@ -19,42 +19,64 @@ export const createToolDir = (dirName: string) => {
 };
 
 
-export const downloadFile = (filePath: string, url: string) => {
-    const file = fs.createWriteStream(filePath);
+export const downloadFile = (filePath: string, url: string, maxRedirects = 5): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(filePath);
 
-    return new Promise<void>((res, rej) => {
-        https.get(url, (response) => {
-            const total = parseInt(response.headers['content-length'] || '0', 10);
-            let downloaded = 0;
+        const cleanupAndReject = (err: Error) => {
+            try { file.close(); } catch (_) { }
+            fs.unlink(filePath, () => reject(err));
+        };
 
-            response.on('data', (chunk) => {
-                downloaded += chunk.length;
-                if (total) {
-                    const percent = ((downloaded / total) * 100).toFixed(2);
-                    logger.info(`Downloading progress: ${percent}%`);
-                } else {
-                    logger.info(`Downloading progress: ${downloaded} bytes`);
+        const request = (currentUrl: string, redirectsLeft: number) => {
+            const req = https.request(currentUrl, (response) => {
+                const status = response.statusCode ?? 0;
+
+                // handle redirects
+                if (status >= 300 && status < 400 && response.headers.location) {
+                    if (redirectsLeft === 0) {
+                        response.destroy();
+                        return cleanupAndReject(new Error('Too many redirects'));
+                    }
+                    const next = new URL(response.headers.location, currentUrl).toString();
+                    response.destroy();
+                    return request(next, redirectsLeft - 1);
                 }
+
+                if (status !== 200) {
+                    response.destroy();
+                    return cleanupAndReject(new Error(`Download failed, status ${status}`));
+                }
+
+                const total = parseInt((response.headers['content-length'] as string) || '0', 10);
+                let downloaded = 0;
+
+                response.on('data', (chunk: Buffer) => {
+                    downloaded += chunk.length;
+                    if (total) {
+                        const percent = ((downloaded / total) * 100).toFixed(2);
+                        logger.info(`Downloading progress: ${percent}%`);
+                    } else {
+                        logger.info(`Downloading progress: ${downloaded} bytes`);
+                    }
+                });
+
+                response.pipe(file);
+
+                file.on('finish', () => {
+                    file.close(() => resolve(filePath));
+                });
+
+                response.on('error', (err) => cleanupAndReject(err));
             });
 
-            response.pipe(file);
+            req.on('error', (err) => cleanupAndReject(err));
 
-            // after download completed close filestream
-            file.on("finish", () => {
-                file.close();
-                logger.info(`Download complete!`);
-                res();
-            });
-        }).on('error', (err) => {
-            // TODO: handle error
-            logger.error('http request error');
-            rej(err);
-        });
+            req.end();
+        };
 
-        file.on('error', (err) => {
-            // TODO: handle error
-            logger.error('file write error');
-            rej(err);
-        });
+        file.on('error', (err) => cleanupAndReject(err));
+
+        request(url, maxRedirects);
     });
 };
