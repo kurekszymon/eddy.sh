@@ -1,10 +1,10 @@
+import { execFile } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
 
 import { EDDY_BIN_DIR, EDDY_DIR } from '@/lib/consts';
 import { logger } from '@/lib/logger';
-import { execFile } from 'child_process';
 
 export const ensureToolDir = (dirName: string) => {
     const dir = path.join(EDDY_DIR, dirName);

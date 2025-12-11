@@ -1,3 +1,5 @@
+// TODO: investigate - needed so in tests value is correctly mocked
+// if you use import os from 'os' it will not be mocked correctly in tests.
 import { homedir } from 'os';
 import path from 'path';
 

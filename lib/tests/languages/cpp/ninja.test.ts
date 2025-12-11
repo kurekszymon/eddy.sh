@@ -22,8 +22,6 @@ describe('cpp/ninja', async () => {
         const dir = ensureToolDir('cpp/ninja');
         await ninja.install();
 
-        const bin = path.join(dir, 'ninja');
-
         const symlinkPath = path.join(EDDY_BIN_DIR, 'ninja');
         const symlinkStats = fs.lstatSync(symlinkPath);
         expect(symlinkStats.isSymbolicLink()).toBe(true);
