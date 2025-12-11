@@ -1,5 +1,6 @@
-// TODO: investigate - needed so in tests value is correctly mocked
-// if you use import os from 'os' it will not be mocked correctly in tests.
+// since the os module doesn't have a default export, it's only feasible to mock individual named exports
+// attempting to import default from 'os' will result in mock value being incorrect
+// ref: https://github.com/nodejs/node/blob/14f02fc2f7c1ea7989bdfeddfadc14921edd4e25/lib/os.js#L310
 import { homedir } from 'os';
 import path from 'path';
 

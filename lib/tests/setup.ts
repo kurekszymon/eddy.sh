@@ -2,9 +2,9 @@ import { mock, beforeEach, afterEach } from "bun:test";
 
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
+import { tmpdir } from 'os';
 
-const tmpDir = path.join(os.tmpdir(), "eddy-test");
+const tmpDir = path.join(tmpdir(), "eddy-test");
 
 mock.module("os", () => ({
     homedir: () => tmpDir,
