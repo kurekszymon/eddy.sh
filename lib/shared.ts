@@ -68,7 +68,7 @@ export const downloadFile = (filePath: string, url: string, maxRedirects = 5): P
                         if (process.stdout?.isTTY) {
                             process.stdout.clearLine(0);
                             process.stdout.cursorTo(0);
-                            process.stdout.write(`Downloading ${fileName}: [${'='.repeat(percent / 4)}${' '.repeat(25 - percent / 4)}] ${percent}%`);
+                            process.stdout.write(`Downloading ${fileName}: [${'='.repeat(percent / 4)}${' '.repeat(25 - percent / 4)}] ${percent.toFixed(2)}%`);
                         } else {
                             logger.info(`Downloading ${fileName}: ${percent.toFixed(2)}%`);
                         }
