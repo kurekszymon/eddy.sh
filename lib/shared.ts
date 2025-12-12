@@ -144,10 +144,19 @@ export function symlink(dir: string, filename: string) {
         }
         fs.symlinkSync(path.join(dir, filename), target);
     } catch (err) {
+        // TODO: handle error
         logger.error(`Failed to create symlink: ${err}`);
     }
 }
 
+export const chmod755 = (targetPath: string) => {
+    fs.chmod(targetPath, 0o755, (err) => {
+        if (err) {
+            // TODO: handle error
+            logger.error(err);
+        }
+    });
+};
 
 export function formatBytes(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;

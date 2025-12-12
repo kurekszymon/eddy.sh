@@ -1,9 +1,7 @@
 import path from 'path';
-import fs from 'fs';
 
 import type { Tool } from "@/lib/types";
-import { ensureToolDir, downloadFile, extract, symlink } from '@/lib/shared';
-import { logger } from '@/lib/logger';
+import { ensureToolDir, downloadFile, extract, symlink, chmod755 } from '@/lib/shared';
 
 /**
  * ninja tool shape; call like `ninja('1.13.2')`
@@ -11,7 +9,7 @@ import { logger } from '@/lib/logger';
  *
  * @link https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-mac.zip
  */
-export const ninja = (version: string): Tool => ({
+export const ninja = (version: Tool['version']): Tool => ({
     name: 'ninja',
     version,
 
@@ -25,26 +23,29 @@ export const ninja = (version: string): Tool => ({
 
         throw new Error("Platform not supported!");
     },
+    get url() {
+        if (version === 'latest') {
+            return `https://github.com/ninja-build/ninja/releases/latest/download/${this.pkgName}`;
+        }
+
+        return `https://github.com/ninja-build/ninja/releases/download/v${this.version}/${this.pkgName}`;
+    },
+
     install: async function () {
         const outDir = ensureToolDir('cpp/ninja'); // TODO: infer lang/name
         const archivePath = await this.download();
         await extract(archivePath, outDir);
 
         const bin = path.join(outDir, this.name);
-        fs.chmod(bin, 0o755, (err) => {
-            if (err) {
-                // TODO: handle error
-                logger.error(err);
-            }
-        });
 
+        chmod755(bin);
         symlink(outDir, this.name);
     },
     download: async function () {
         const dir = ensureToolDir('cpp/ninja');
         const filePath = path.join(dir, this.pkgName);
 
-        await downloadFile(filePath, `https://github.com/ninja-build/ninja/releases/download/v${this.version}/${this.pkgName}`);
+        await downloadFile(filePath, this.url);
         return filePath;
     },
 });

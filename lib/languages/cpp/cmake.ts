@@ -9,7 +9,7 @@ import type { Tool } from "@/lib/types";
  *
  * @link https://github.com/Kitware/CMake/releases/download/v4.1.4/cmake-4.1.4-macos-universal.tar.gz
  */
-export const cmake = (version: string): Tool => ({
+export const cmake = (version: Tool['version']): Tool => ({
     name: 'cmake',
     version,
 
@@ -23,11 +23,19 @@ export const cmake = (version: string): Tool => ({
 
         throw new Error("Platform not supported!");
     },
+    get url() {
+        if (version === 'latest') {
+            return `https://github.com/Kitware/CMake/releases/latest/download/${this.pkgName}`;
+        }
+
+        return `https://github.com/Kitware/CMake/releases/download/v${this.version}/${this.pkgName}`;
+    },
+
     download: async function () {
         const dir = ensureToolDir('cpp/cmake'); // TODO infer from the file structure
         const filePath = path.join(dir, this.pkgName);
 
-        await downloadFile(filePath, `https://github.com/Kitware/CMake/releases/download/v${this.version}/${this.pkgName}`);
+        await downloadFile(filePath, this.url);
         return filePath;
     },
     async install() { }
