@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import fs, { readdirSync } from 'fs';
+import fs from 'fs';
 import path from 'path';
+
+import { EDDY_BIN_DIR } from "@/lib/consts";
+import { CMAKE_BIN_PATH, getBasePkgName } from "@/lib/languages/cpp/cmake";
 
 describe('cpp/cmake', async () => {
     const cpp = await import("@/lib/languages/cpp/cmake");
@@ -22,7 +25,7 @@ describe('cpp/cmake', async () => {
         expect(cmake.url).toBe(`https://github.com/Kitware/CMake/releases/latest/download/${cmake.pkgName}`);
     });
 
-    test("installs cmake", async () => {
+    test("downloads cmake", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
 
         expect(cmake.url).toBe(`https://github.com/Kitware/CMake/releases/download/v4.1.4/${cmake.pkgName}`);
@@ -31,5 +34,25 @@ describe('cpp/cmake', async () => {
         await cmake.download();
 
         expect(fs.existsSync(path.join(dir, cmake.pkgName))).toBe(true);
+    });
+
+    test("installs cmake", async () => {
+        const { ensureToolDir } = await import("@/lib/shared");
+
+        expect(cmake.url).toBe(`https://github.com/Kitware/CMake/releases/download/v4.1.4/${cmake.pkgName}`);
+
+        const dir = ensureToolDir('cpp/cmake');
+        await cmake.install();
+
+        ['cmake', 'cpack', 'ctest', 'ccmake'].forEach(bin => {
+            const symlinkPath = path.join(EDDY_BIN_DIR, bin);
+            const symlinkStats = fs.lstatSync(symlinkPath);
+            expect(symlinkStats.isSymbolicLink()).toBe(true);
+
+            const cmakeDir = getBasePkgName(cmake.pkgName);
+
+            const target = fs.readlinkSync(symlinkPath);
+            expect(target).toBe(path.join(dir, cmakeDir, CMAKE_BIN_PATH, bin));
+        });
     });
 });

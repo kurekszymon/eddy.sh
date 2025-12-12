@@ -5,6 +5,7 @@ import https from 'https';
 
 import { EDDY_BIN_DIR, EDDY_DIR } from '@/lib/consts';
 import { logger } from '@/lib/logger';
+import type { semver } from '@/lib/types';
 
 export const ensureToolDir = (dirName: string) => {
     const dir = path.join(EDDY_DIR, dirName);
@@ -32,7 +33,7 @@ export const downloadFile = (filePath: string, url: string, maxRedirects = 5): P
         const cleanupAndReject = (err: Error) => {
             try { file.close(); } catch (_) { }
             fs.unlink(filePath, () => {
-                console.log('\n');
+                flushBuffer();
                 reject(err);
             });
         };
@@ -65,21 +66,13 @@ export const downloadFile = (filePath: string, url: string, maxRedirects = 5): P
                     if (total) {
                         // TODO: extract progress bar logic
                         const percent = ((downloaded / total) * 100);
-                        if (process.stdout?.isTTY) {
-                            process.stdout.clearLine(0);
-                            process.stdout.cursorTo(0);
-                            process.stdout.write(`Downloading ${fileName}: [${'='.repeat(percent / 4)}${' '.repeat(25 - percent / 4)}] ${percent.toFixed(2)}%`);
-                        } else {
-                            logger.info(`Downloading ${fileName}: ${percent.toFixed(2)}%`);
-                        }
+                        process.stdout.clearLine(0);
+                        process.stdout.cursorTo(0);
+                        process.stdout.write(`Downloading ${fileName}: [${'='.repeat(percent / 4)}${' '.repeat(25 - percent / 4)}] ${percent.toFixed(2)}%`);
                     } else {
-                        if (process.stdout?.isTTY) {
-                            process.stdout.clearLine(0);
-                            process.stdout.cursorTo(0);
-                            process.stdout.write(`Downloading ${fileName}: ${formatBytes(downloaded)} bytes`);
-                        } else {
-                            logger.info(`Downloading ${fileName}: ${formatBytes(downloaded)} bytes`);
-                        }
+                        process.stdout.clearLine(0);
+                        process.stdout.cursorTo(0);
+                        process.stdout.write(`Downloading ${fileName}: ${formatBytes(downloaded)} bytes`);
                     }
                 });
 
@@ -87,8 +80,8 @@ export const downloadFile = (filePath: string, url: string, maxRedirects = 5): P
 
                 file.on('finish', () => {
                     file.close(() => {
+                        flushBuffer();
                         resolve(filePath);
-                        console.log('\n');
                     });
                 });
 
@@ -96,7 +89,6 @@ export const downloadFile = (filePath: string, url: string, maxRedirects = 5): P
             });
 
             req.on('error', (err) => cleanupAndReject(err));
-
             req.end();
         };
 
@@ -149,8 +141,10 @@ export function symlink(dir: string, filename: string) {
     }
 }
 
-export const chmod755 = (targetPath: string) => {
-    fs.chmod(targetPath, 0o755, (err) => {
+export const chmod755 = (targetPath: string, filename: string) => {
+    const bin = path.join(targetPath, filename);
+
+    fs.chmod(bin, 0o755, (err) => {
         if (err) {
             // TODO: handle error
             logger.error(err);
@@ -158,8 +152,39 @@ export const chmod755 = (targetPath: string) => {
     });
 };
 
+/**
+ * Sometimes tools use version in their package name,
+ * so in order to determine proper version, following redirect is needed
+ *
+ * think of a way to test it reliably
+ * publish eddy.sh version and use version from package.json maybe?
+ * @param url to follow the redirect
+ */
+export async function resolveLatestVersion(url: string): Promise<semver> {
+    return new Promise((resolve, reject) => {
+        const req = https.request(url, { method: "HEAD" }, (res) => {
+            const location = res.headers.location;
+            if (location) {
+                const match = location.match(/(\d+\.\d+\.\d+)/);
+                if (match?.[1]) {
+                    resolve(match[1] as semver);
+                } else {
+                    reject(new Error("Could not extract version and filename from redirect URL"));
+                }
+            } else {
+                reject(new Error("No redirect location header found"));
+            }
+        });
+        req.on("error", reject);
+        req.end();
+    });
+}
+
+
 export function formatBytes(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
+
+function flushBuffer() { console.log('\n'); };

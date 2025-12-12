@@ -1,10 +1,16 @@
 import path from 'path';
 
-import { downloadFile, ensureToolDir } from "@/lib/shared";
+import { chmod755, downloadFile, ensureToolDir, extract, resolveLatestVersion, symlink } from "@/lib/shared";
 import type { Tool } from "@/lib/types";
 
+
+export const getBasePkgName = (pkgName: string) => path.basename(pkgName).replace(/\.(tar\.gz|zip)$/, '');
+
+export const CMAKE_BIN_PATH = process.platform === 'darwin'
+    ? 'CMake.app/Contents/bin'
+    : 'bin';
 /**
- * cmake tool shape; call like `cmake('4.1.4')`
+ * cmake tool shape; call like `cmake('4.1.4')` or `cmake('latest')`
  * @param version version of a lib, pass semantic version without leading `v`
  *
  * @link https://github.com/Kitware/CMake/releases/download/v4.1.4/cmake-4.1.4-macos-universal.tar.gz
@@ -38,5 +44,22 @@ export const cmake = (version: Tool['version']): Tool => ({
         await downloadFile(filePath, this.url);
         return filePath;
     },
-    async install() { }
+    async install() {
+        const outDir = ensureToolDir('cpp/cmake'); // TODO: infer lang/name
+
+        if (version === 'latest') {
+            this.version = await resolveLatestVersion(this.url);
+        }
+
+        const archivePath = await this.download();
+        await extract(archivePath, outDir);
+
+        const cmakeDir = getBasePkgName(this.pkgName);
+
+        const binDir = path.join(outDir, cmakeDir, CMAKE_BIN_PATH);
+
+        ['ccmake', 'cmake', 'cpack', 'ctest'].forEach(bin => {
+            symlink(binDir, bin);
+        });
+    }
 });

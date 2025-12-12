@@ -1,8 +1,9 @@
-import { EDDY_BIN_DIR } from "@/lib/consts";
 import { describe, expect, test } from "bun:test";
 
 import fs from 'fs';
 import path from 'path';
+
+import { EDDY_BIN_DIR } from "@/lib/consts";
 
 describe('cpp/ninja', async () => {
     const cpp = await import("@/lib/languages/cpp/ninja");
