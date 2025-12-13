@@ -43,15 +43,17 @@ describe('cpp/cmake', async () => {
 
         const dir = ensureToolDir('cpp/cmake');
         await cmake.install();
+        cmake.use();
 
         ['cmake', 'cpack', 'ctest', 'ccmake'].forEach(bin => {
             const symlinkPath = path.join(EDDY_BIN_DIR, bin);
             const symlinkStats = fs.lstatSync(symlinkPath);
             expect(symlinkStats.isSymbolicLink()).toBe(true);
 
-
             const target = fs.readlinkSync(symlinkPath);
             expect(target).toBe(path.join(dir, cmake.version, CMAKE_BIN_PATH, bin));
         });
     });
+
+    // TODO: seperate tests between install and use
 });

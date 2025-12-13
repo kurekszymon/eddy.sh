@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 
 import {
     downloadFile,
@@ -44,25 +45,33 @@ export const cmake = (version: Tool['version']): Tool => ({
         return `https://github.com/Kitware/CMake/releases/download/v${this.version}/${this.pkgName}`;
     },
 
-    download: async function () {
-        const dir = ensureToolDir('cpp/cmake'); // TODO infer from the file structure
+    async download() {
+        const dir = ensureToolDir('cpp/cmake');
         const filePath = path.join(dir, this.pkgName);
 
         await downloadFile(filePath, this.url);
         return filePath;
     },
     async install() {
-        const outDir = ensureToolDir('cpp/cmake'); // TODO: infer lang/name
+        const cmakeDir = ensureToolDir('cpp/cmake');
 
         if (version === 'latest') {
             this.version = await resolveLatestVersion(this.url);
         }
 
         const archivePath = await this.download();
-        await extract(archivePath, outDir);
+        await extract(archivePath, cmakeDir);
 
-        rename(outDir, getBasePkgName(this.pkgName), this.version);
-        const binDir = path.join(outDir, this.version, CMAKE_BIN_PATH);
+        await rename(cmakeDir, getBasePkgName(this.pkgName), this.version);
+    },
+    use() {
+        const cmakeDir = ensureToolDir('cpp/cmake');
+
+        const binDir = path.join(cmakeDir, this.version, CMAKE_BIN_PATH);
+
+        if (!fs.existsSync(binDir)) {
+            throw new Error(`${this.name}@${this.version} is not installed yet.`);
+        }
 
         ['ccmake', 'cmake', 'cpack', 'ctest'].forEach(bin => {
             symlink(binDir, bin);

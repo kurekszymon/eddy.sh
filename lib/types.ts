@@ -7,6 +7,7 @@ export interface Tool {
     get pkgName(): string;
     get url(): string;
 
-    install: () => Promise<void>;
     download: () => Promise<string>;
+    install: () => Promise<void>;
+    use: () => void;
 }

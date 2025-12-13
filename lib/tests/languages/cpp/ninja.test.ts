@@ -40,6 +40,7 @@ describe('cpp/ninja', async () => {
 
         const dir = ensureToolDir('cpp/ninja');
         await ninja.install();
+        ninja.use();
 
         const symlinkPath = path.join(EDDY_BIN_DIR, ninja.name);
         const symlinkStats = fs.lstatSync(symlinkPath);
@@ -48,4 +49,6 @@ describe('cpp/ninja', async () => {
         const target = fs.readlinkSync(symlinkPath);
         expect(target).toBe(path.join(dir, ninja.version, ninja.name));
     });
+
+    // TODO: seperate tests between install and use
 });
