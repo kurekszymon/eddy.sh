@@ -162,14 +162,17 @@ export const chmod755 = (targetPath: string, filename: string) => {
  * @param newName new dir name
  */
 export const rename = (pathname: string, oldName: string, newName: string) => {
-    const newPath = path.join(pathname, newName);
-    if (fs.existsSync(newPath)) {
-        logger.warn(`${newPath} directory is not empty. if you wanted to reinstall same version, remove it first`);
-        return;
-    }
-    fs.rename(path.join(pathname, oldName), newPath, (err) => {
-        // TODO: handle error
-        if (err) throw err;
+    return new Promise<void>((res, rej) => {
+        const newPath = path.join(pathname, newName);
+        if (fs.existsSync(newPath)) {
+            logger.warn(`${newPath} directory is not empty. if you wanted to reinstall same version, remove it first`);
+            res();
+        }
+        fs.rename(path.join(pathname, oldName), newPath, (err) => {
+            // TODO: handle error
+            if (err) rej(err);
+            res();
+        });
     });
 };
 
