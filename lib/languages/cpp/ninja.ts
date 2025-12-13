@@ -1,7 +1,14 @@
 import path from 'path';
 
 import type { Tool } from "@/lib/types";
-import { ensureToolDir, downloadFile, extract, symlink, chmod755, resolveLatestVersion } from '@/lib/shared';
+import {
+    ensureToolDir,
+    downloadFile,
+    extract,
+    symlink,
+    chmod755,
+    resolveLatestVersion
+} from '@/lib/shared';
 
 /**
  * ninja tool shape; call like `ninja('1.13.2')`
@@ -31,7 +38,7 @@ export const ninja = (version: Tool['version']): Tool => ({
     },
 
     install: async function () {
-        const outDir = ensureToolDir('cpp/ninja'); // TODO: infer lang/name
+        const outDir = ensureToolDir(`cpp/ninja/${this.version}`); // TODO: infer lang/name/version only for ninja, align tests
 
         if (version === 'latest') {
             this.version = await resolveLatestVersion(this.url);
@@ -39,7 +46,6 @@ export const ninja = (version: Tool['version']): Tool => ({
 
         const archivePath = await this.download();
         await extract(archivePath, outDir);
-
 
         chmod755(outDir, this.name);
         symlink(outDir, this.name);

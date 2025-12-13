@@ -1,6 +1,13 @@
 import path from 'path';
 
-import { chmod755, downloadFile, ensureToolDir, extract, resolveLatestVersion, symlink } from "@/lib/shared";
+import {
+    downloadFile,
+    ensureToolDir,
+    extract,
+    rename,
+    resolveLatestVersion,
+    symlink
+} from "@/lib/shared";
 import type { Tool } from "@/lib/types";
 
 
@@ -54,9 +61,8 @@ export const cmake = (version: Tool['version']): Tool => ({
         const archivePath = await this.download();
         await extract(archivePath, outDir);
 
-        const cmakeDir = getBasePkgName(this.pkgName);
-
-        const binDir = path.join(outDir, cmakeDir, CMAKE_BIN_PATH);
+        rename(outDir, getBasePkgName(this.pkgName), this.version);
+        const binDir = path.join(outDir, this.version, CMAKE_BIN_PATH);
 
         ['ccmake', 'cmake', 'cpack', 'ctest'].forEach(bin => {
             symlink(binDir, bin);

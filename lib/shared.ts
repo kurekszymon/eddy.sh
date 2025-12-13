@@ -153,6 +153,27 @@ export const chmod755 = (targetPath: string, filename: string) => {
 };
 
 /**
+ * renames a directory like mv pathname/oldName pathname/newName;
+ *
+ * In the case that newPath already exists, it will be overwritten.
+ * If there is a directory at newPath, an error will be raised instead.
+ * @param pathname absolute path
+ * @param oldName current dir name
+ * @param newName new dir name
+ */
+export const rename = (pathname: string, oldName: string, newName: string) => {
+    const newPath = path.join(pathname, newName);
+    if (fs.existsSync(newPath)) {
+        logger.warn(`${newPath} directory is not empty. if you wanted to reinstall same version, remove it first`);
+        return;
+    }
+    fs.rename(path.join(pathname, oldName), newPath, (err) => {
+        // TODO: handle error
+        if (err) throw err;
+    });
+};
+
+/**
  * Sometimes tools use version in their package name,
  * so in order to determine proper version, following redirect is needed
  *

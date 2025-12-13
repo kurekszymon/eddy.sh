@@ -46,6 +46,6 @@ describe('cpp/ninja', async () => {
         expect(symlinkStats.isSymbolicLink()).toBe(true);
 
         const target = fs.readlinkSync(symlinkPath);
-        expect(target).toBe(path.join(dir, ninja.name));
+        expect(target).toBe(path.join(dir, ninja.version, ninja.name));
     });
 });

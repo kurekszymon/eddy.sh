@@ -49,10 +49,9 @@ describe('cpp/cmake', async () => {
             const symlinkStats = fs.lstatSync(symlinkPath);
             expect(symlinkStats.isSymbolicLink()).toBe(true);
 
-            const cmakeDir = getBasePkgName(cmake.pkgName);
 
             const target = fs.readlinkSync(symlinkPath);
-            expect(target).toBe(path.join(dir, cmakeDir, CMAKE_BIN_PATH, bin));
+            expect(target).toBe(path.join(dir, cmake.version, CMAKE_BIN_PATH, bin));
         });
     });
 });
