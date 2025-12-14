@@ -53,7 +53,16 @@ describe('cpp/cmake', async () => {
             const target = fs.readlinkSync(symlinkPath);
             expect(target).toBe(path.join(dir, cmake.version, CMAKE_BIN_PATH, bin));
         });
-    });
+    }); // TODO: seperate tests between install and use
 
-    // TODO: seperate tests between install and use
+    test("deletes cmake installation", async () => {
+        const { ensureToolDir } = await import("@/lib/shared");
+        const dir = ensureToolDir('cpp/cmake');
+
+        await cmake.install();
+        expect(fs.existsSync(path.join(dir, cmake.version))).toBe(true);
+
+        await cmake.delete();
+        expect(fs.existsSync(path.join(dir, cmake.version))).toBe(false);
+    });
 });

@@ -48,7 +48,16 @@ describe('cpp/ninja', async () => {
 
         const target = fs.readlinkSync(symlinkPath);
         expect(target).toBe(path.join(dir, ninja.version, ninja.name));
-    });
+    }); // TODO: seperate tests between install and use
 
-    // TODO: seperate tests between install and use
+    test("deletes ninja installation", async () => {
+        const { ensureToolDir } = await import("@/lib/shared");
+        const dir = ensureToolDir('cpp/ninja');
+
+        await ninja.install();
+        expect(fs.existsSync(path.join(dir, ninja.version))).toBe(true);
+
+        await ninja.delete();
+        expect(fs.existsSync(path.join(dir, ninja.version))).toBe(false);
+    });
 });
