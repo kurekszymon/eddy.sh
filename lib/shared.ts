@@ -177,6 +177,22 @@ export const rename = (pathname: string, oldName: string, newName: string) => {
 };
 
 /**
+ * performs rm -rf on given `path`;
+ * await for `fs.rm` to complete
+ */
+export const remove = (path: string) => {
+    return new Promise<void>((res, rej) => {
+        fs.rm(path, { recursive: true, force: true }, (err) => {
+            if (err) {
+                // TODO: handle err
+                rej(err);
+            }
+            res();
+        });
+    });
+};
+
+/**
  * Sometimes tools use version in their package name,
  * so in order to determine proper version, following redirect is needed
  *

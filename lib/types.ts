@@ -9,5 +9,6 @@ export interface Tool {
 
     download: () => Promise<string>;
     install: () => Promise<void>;
+    delete: () => Promise<void>;
     use: () => void;
 }

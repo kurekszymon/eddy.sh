@@ -5,6 +5,7 @@ import {
     downloadFile,
     ensureToolDir,
     extract,
+    remove,
     rename,
     resolveLatestVersion,
     symlink
@@ -76,5 +77,9 @@ export const cmake = (version: Tool['version']): Tool => ({
         ['ccmake', 'cmake', 'cpack', 'ctest'].forEach(bin => {
             symlink(binDir, bin);
         });
+    },
+    async delete() {
+        const cmakeDir = ensureToolDir(`cpp/cmake/${this.version}`);
+        await remove(cmakeDir);
     }
 });

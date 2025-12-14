@@ -8,7 +8,8 @@ import {
     extract,
     symlink,
     chmod755,
-    resolveLatestVersion
+    resolveLatestVersion,
+    remove
 } from '@/lib/shared';
 
 /**
@@ -64,5 +65,9 @@ export const ninja = (version: Tool['version']): Tool => ({
 
         chmod755(ninjaDir, this.name);
         symlink(ninjaDir, this.name);
+    },
+    async delete() {
+        const ninjaDir = ensureToolDir(`cpp/ninja/${this.version}`);
+        await remove(ninjaDir);
     }
 });
