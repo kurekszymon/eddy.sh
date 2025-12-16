@@ -5,6 +5,7 @@ import {
     downloadFile,
     ensureToolDir,
     extract,
+    getBasePkgName,
     remove,
     rename,
     resolveLatestVersion,
@@ -12,8 +13,6 @@ import {
 } from "@/lib/shared";
 import type { Tool } from "@/lib/types";
 
-
-export const getBasePkgName = (pkgName: string) => path.basename(pkgName).replace(/\.(tar\.gz|zip)$/, '');
 
 export const CMAKE_BIN_PATH = process.platform === 'darwin'
     ? 'CMake.app/Contents/bin'

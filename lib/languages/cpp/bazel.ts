@@ -22,9 +22,6 @@ export const bazel = (version: Tool['version']): Tool => ({
         if (process.platform === 'darwin') {
             return `bazel-${this.version}-darwin-arm64`;
         }
-        if (process.platform === 'linux') {
-            return `bazel-${this.version}-linux-x86_64`;
-        }
         throw new Error("Platform not supported!");
     },
     get url() {

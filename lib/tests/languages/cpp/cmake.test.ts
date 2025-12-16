@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { EDDY_BIN_DIR } from "@/lib/consts";
-import { CMAKE_BIN_PATH, getBasePkgName } from "@/lib/languages/cpp/cmake";
+import { CMAKE_BIN_PATH } from "@/lib/languages/cpp/cmake";
 
 describe('cpp/cmake', async () => {
     const cpp = await import("@/lib/languages/cpp/cmake");

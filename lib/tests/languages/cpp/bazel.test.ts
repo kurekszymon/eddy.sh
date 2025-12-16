@@ -17,10 +17,6 @@ describe('cpp/bazel', async () => {
         expect(bazel.pkgName).toBe('bazel-8.5.0-windows-x86_64.exe');
     });
 
-    test.if(process.platform === 'linux')("checks pkgName", () => {
-        expect(bazel.pkgName).toBe('bazel-8.5.0-linux-x86_64');
-    });
-
     test('picks latest version', async () => {
         const cpp = await import("@/lib/languages/cpp/bazel");
         const bazel = cpp.bazel('latest');

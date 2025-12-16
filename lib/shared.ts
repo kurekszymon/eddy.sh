@@ -227,4 +227,6 @@ export function formatBytes(bytes: number): string {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+export function getBasePkgName(pkgName: string) { return path.basename(pkgName).replace(/\.(tar\.gz|zip)$/, ''); }
+
 function flushBuffer() { console.log('\n'); };
