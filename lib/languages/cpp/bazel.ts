@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 
 import type { Tool } from "@/lib/types";
 import {
@@ -34,21 +35,27 @@ export const bazel = (version: Tool['version']): Tool => ({
     async download() {
         const dir = ensureToolDir(`cpp/bazel/${this.version}`);
         const filePath = path.join(dir, this.pkgName);
+
         await downloadFile(filePath, this.url);
         return filePath;
     },
     async install() {
-        const outDir = ensureToolDir(`cpp/bazel/${this.version}`);
-
         if (version === 'latest') {
             this.version = await resolveLatestVersion(this.url);
         }
+
+        const outDir = ensureToolDir(`cpp/bazel/${this.version}`);
 
         await this.download();
         await rename(outDir, this.pkgName, this.name);
     },
     use() {
-        const bazelDir = ensureToolDir(`cpp/bazel/${this.version}`);
+        const bazelDir = ensureToolDir(`cpp/bazel/${this.version}`, { check: true });
+
+        if (!fs.existsSync(bazelDir)) {
+            // remove double exists sync version, replace with only one
+            throw new Error(`${this.name}@${this.version} is not installed yet.`);
+        }
 
         chmod755(bazelDir, this.name);
         symlink(bazelDir, this.name);

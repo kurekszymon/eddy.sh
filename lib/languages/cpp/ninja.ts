@@ -40,11 +40,11 @@ export const ninja = (version: Tool['version']): Tool => ({
     },
 
     async install() {
-        const outDir = ensureToolDir(`cpp/ninja/${this.version}`);
-
         if (version === 'latest') {
             this.version = await resolveLatestVersion(this.url);
         }
+
+        const outDir = ensureToolDir(`cpp/ninja/${this.version}`);
 
         const archivePath = await this.download();
         await extract(archivePath, outDir);
@@ -57,7 +57,7 @@ export const ninja = (version: Tool['version']): Tool => ({
         return filePath;
     },
     use() {
-        const ninjaDir = ensureToolDir(`cpp/ninja/${this.version}`);
+        const ninjaDir = ensureToolDir(`cpp/ninja/${this.version}`, { check: true });
 
         if (!fs.existsSync(ninjaDir)) {
             throw new Error(`${this.name}@${this.version} is not installed yet.`);

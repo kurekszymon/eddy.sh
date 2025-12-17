@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 
 import type { Tool } from "@/lib/types";
 import {
@@ -6,13 +7,10 @@ import {
     downloadFile,
     chmod755,
     symlink,
-    rename,
     resolveLatestVersion,
     remove,
     extract,
-    getBasePkgName
 } from '@/lib/shared';
-import { readdirSync } from 'fs';
 
 // Conan is distributed as a single Python script or as a standalone binary for some platforms.
 // We'll use the official standalone installer for Linux/macOS, and the .exe for Windows.
@@ -45,17 +43,22 @@ export const conan = (version: Tool['version']): Tool => ({
         return filePath;
     },
     async install() {
-        const conanDir = ensureToolDir(`cpp/conan/${this.version}`);
-
         if (version === 'latest') {
             this.version = await resolveLatestVersion(this.url);
         }
+
+        const conanDir = ensureToolDir(`cpp/conan/${this.version}`);
 
         const archivePath = await this.download();
         await extract(archivePath, conanDir);
     },
     use() {
-        const conanDir = ensureToolDir(`cpp/conan/${this.version}`);
+        const conanDir = ensureToolDir(`cpp/conan/${this.version}`, { check: false });
+
+        if (!fs.existsSync(conanDir)) {
+            // remove double exists sync version, replace with only one
+            throw new Error(`${this.name}@${this.version} is not installed yet.`);
+        }
 
         chmod755(conanDir, this.pkgName);
         symlink(path.join(conanDir, 'bin'), this.name);

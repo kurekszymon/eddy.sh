@@ -4,9 +4,9 @@ import { conan } from './conan';
 import { ninja } from './ninja';
 
 export const cpp = {
-    emscripten: () => {
-        return 'hello from emscripten';
-    },
+    // emscripten: () => {
+    //     return 'hello from emscripten';
+    // },
     bazel,
     cmake,
     conan,

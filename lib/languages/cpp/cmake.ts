@@ -61,7 +61,6 @@ export const cmake = (version: Tool['version']): Tool => ({
 
         const archivePath = await this.download();
         await extract(archivePath, cmakeDir);
-
         await rename(cmakeDir, getBasePkgName(this.pkgName), this.version);
     },
     use() {
