@@ -4,6 +4,7 @@ import type { Tool } from "./lib/types";
 
 const program = new Command();
 
+// TODO: cleanup
 program
     .name('eddy.sh')
     .description('CLI to install some self container pkgs')

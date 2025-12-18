@@ -64,7 +64,7 @@ export const cmake = (version: Tool['version']): Tool => ({
         await rename(cmakeDir, getBasePkgName(this.pkgName), this.version);
     },
     use() {
-        const cmakeDir = ensureToolDir('cpp/cmake');
+        const cmakeDir = ensureToolDir('cpp/cmake', { check: true });
 
         const binDir = path.join(cmakeDir, this.version, CMAKE_BIN_PATH);
 
@@ -77,7 +77,7 @@ export const cmake = (version: Tool['version']): Tool => ({
         });
     },
     async delete() {
-        const cmakeDir = ensureToolDir(`cpp/cmake/${this.version}`);
+        const cmakeDir = ensureToolDir(`cpp/cmake/${this.version}`, { check: true });
         await remove(cmakeDir);
     }
 });

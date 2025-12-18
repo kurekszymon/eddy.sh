@@ -61,7 +61,7 @@ export const bazel = (version: Tool['version']): Tool => ({
         symlink(bazelDir, this.name);
     },
     async delete() {
-        const bazelDir = ensureToolDir(`cpp/bazel/${this.version}`);
+        const bazelDir = ensureToolDir(`cpp/bazel/${this.version}`, { check: true });
         await remove(bazelDir);
     }
 });

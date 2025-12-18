@@ -30,18 +30,19 @@ describe('cpp/cmake', async () => {
 
         expect(cmake.url).toBe(`https://github.com/Kitware/CMake/releases/download/v4.1.4/${cmake.pkgName}`);
 
-        const dir = ensureToolDir('cpp/cmake');
+        const dir = ensureToolDir('cpp/cmake', { check: true });
         await cmake.download();
 
         expect(fs.existsSync(path.join(dir, cmake.pkgName))).toBe(true);
     });
 
+    // TODO add test for latest version, so it always evaluates to `semantic.version.number` instead of latest
     test("installs cmake", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
 
         expect(cmake.url).toBe(`https://github.com/Kitware/CMake/releases/download/v4.1.4/${cmake.pkgName}`);
 
-        const dir = ensureToolDir('cpp/cmake');
+        const dir = ensureToolDir('cpp/cmake', { check: true });
         await cmake.install();
         cmake.use();
 
@@ -57,7 +58,7 @@ describe('cpp/cmake', async () => {
 
     test("deletes cmake installation", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
-        const dir = ensureToolDir('cpp/cmake');
+        const dir = ensureToolDir('cpp/cmake', { check: true });
 
         await cmake.install();
         expect(fs.existsSync(path.join(dir, cmake.version))).toBe(true);

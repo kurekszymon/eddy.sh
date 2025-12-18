@@ -29,7 +29,7 @@ describe('cpp/ninja', async () => {
 
         expect(ninja.url).toBe(`https://github.com/ninja-build/ninja/releases/download/v1.13.2/${ninja.pkgName}`);
 
-        const dir = ensureToolDir('cpp/ninja');
+        const dir = ensureToolDir('cpp/ninja', { check: true });
         await ninja.download();
 
         expect(fs.existsSync(path.join(dir, ninja.pkgName))).toBe(true);
@@ -38,7 +38,7 @@ describe('cpp/ninja', async () => {
     test("installs ninja", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
 
-        const dir = ensureToolDir('cpp/ninja');
+        const dir = ensureToolDir('cpp/ninja', { check: true });
         await ninja.install();
         ninja.use();
 
@@ -52,7 +52,7 @@ describe('cpp/ninja', async () => {
 
     test("deletes ninja installation", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
-        const dir = ensureToolDir('cpp/ninja');
+        const dir = ensureToolDir('cpp/ninja', { check: true });
 
         await ninja.install();
         expect(fs.existsSync(path.join(dir, ninja.version))).toBe(true);

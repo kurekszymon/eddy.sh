@@ -27,7 +27,7 @@ describe('cpp/bazel', async () => {
         const { ensureToolDir } = await import("@/lib/shared");
 
         expect(bazel.url).toBe(`https://github.com/bazelbuild/bazel/releases/download/8.5.0/${bazel.pkgName}`);
-        const dir = ensureToolDir('cpp/bazel');
+        const dir = ensureToolDir('cpp/bazel', { check: true });
 
         await bazel.download();
         expect(fs.existsSync(path.join(dir, bazel.version))).toBe(true);
@@ -35,7 +35,7 @@ describe('cpp/bazel', async () => {
 
     test("installs bazel", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
-        const dir = ensureToolDir('cpp/bazel');
+        const dir = ensureToolDir('cpp/bazel', { check: true });
         await bazel.install();
         bazel.use();
 
@@ -49,7 +49,7 @@ describe('cpp/bazel', async () => {
 
     test("deletes bazel installation", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
-        const dir = ensureToolDir('cpp/bazel');
+        const dir = ensureToolDir('cpp/bazel', { check: true });
 
         await bazel.install();
         expect(fs.existsSync(path.join(dir, bazel.version))).toBe(true);

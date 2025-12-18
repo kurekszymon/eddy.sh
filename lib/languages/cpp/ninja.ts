@@ -67,7 +67,7 @@ export const ninja = (version: Tool['version']): Tool => ({
         symlink(ninjaDir, this.name);
     },
     async delete() {
-        const ninjaDir = ensureToolDir(`cpp/ninja/${this.version}`);
+        const ninjaDir = ensureToolDir(`cpp/ninja/${this.version}`, { check: true });
         await remove(ninjaDir);
     }
 });

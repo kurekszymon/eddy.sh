@@ -7,6 +7,11 @@ import { EDDY_BIN_DIR, EDDY_DIR } from '@/lib/consts';
 import { logger } from '@/lib/logger';
 import type { semver } from '@/lib/types';
 
+/**
+ * creates directory if doesn't exist.
+ *
+ * can { check: true } to only retrieve a path, without creating a dir.
+ */
 export const ensureToolDir = (dirName: string, { check = false } = {}) => {
     const dir = path.join(EDDY_DIR, dirName);
 

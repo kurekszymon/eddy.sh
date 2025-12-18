@@ -27,16 +27,15 @@ describe('cpp/conan', async () => {
         const { ensureToolDir } = await import("@/lib/shared");
         expect(conan.url).toBe(`https://github.com/conan-io/conan/releases/download/2.23.0/${conan.pkgName}`);
 
-        const dir = ensureToolDir('cpp/conan');
+        const dir = ensureToolDir('cpp/conan', { check: true });
         await conan.download();
-
 
         expect(fs.existsSync(path.join(dir, conan.pkgName))).toBe(true);
     });
 
     test("installs conan", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
-        const dir = ensureToolDir('cpp/conan');
+        const dir = ensureToolDir('cpp/conan', { check: true });
 
         await conan.install();
         conan.use();
@@ -46,13 +45,13 @@ describe('cpp/conan', async () => {
         expect(symlinkStats.isSymbolicLink()).toBe(true);
 
         const target = fs.readlinkSync(symlinkPath);
-        expect(target).toBe(path.join(dir, conan.version, conan.pkgName));
+        expect(target).toBe(path.join(dir, conan.version, 'bin', conan.name));
     });
 
     test("deletes conan installation", async () => {
         const { ensureToolDir } = await import("@/lib/shared");
 
-        const dir = ensureToolDir('cpp/conan');
+        const dir = ensureToolDir('cpp/conan', { check: true });
         await conan.install();
         expect(fs.existsSync(path.join(dir, conan.version))).toBe(true);
 

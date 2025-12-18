@@ -53,7 +53,7 @@ export const conan = (version: Tool['version']): Tool => ({
         await extract(archivePath, conanDir);
     },
     use() {
-        const conanDir = ensureToolDir(`cpp/conan/${this.version}`, { check: false });
+        const conanDir = ensureToolDir(`cpp/conan/${this.version}`, { check: true });
 
         if (!fs.existsSync(conanDir)) {
             // remove double exists sync version, replace with only one
@@ -64,7 +64,7 @@ export const conan = (version: Tool['version']): Tool => ({
         symlink(path.join(conanDir, 'bin'), this.name);
     },
     async delete() {
-        const conanDir = ensureToolDir(`cpp/conan/${this.version}`);
+        const conanDir = ensureToolDir(`cpp/conan/${this.version}`, { check: true });
         await remove(conanDir);
     }
 });
