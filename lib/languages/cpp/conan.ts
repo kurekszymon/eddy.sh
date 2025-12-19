@@ -60,8 +60,9 @@ export const conan = (version: Tool['version']): Tool => ({
             throw new Error(`${this.name}@${this.version} is not installed yet.`);
         }
 
-        chmod755(conanDir, this.pkgName);
-        symlink(path.join(conanDir, 'bin'), this.name);
+        const conanBinaryDir = path.join(conanDir, 'bin');
+        chmod755(conanBinaryDir, this.name);
+        symlink(conanBinaryDir, this.name);
     },
     async delete() {
         const conanDir = ensureToolDir(`cpp/conan/${this.version}`, { check: true });
