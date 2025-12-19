@@ -78,6 +78,8 @@ export const cmake = (version: Tool['version']): Tool => ({
     },
     async delete() {
         const cmakeDir = ensureToolDir(`cpp/cmake/${this.version}`, { check: true });
-        await remove(cmakeDir);
+        const cmakeArchive = ensureToolDir(`cpp/cmake/${this.pkgName}`, { check: true });
+
+        await Promise.all([remove(cmakeArchive), remove(cmakeDir)]);
     }
 });
