@@ -13,36 +13,54 @@ program
 program.command('install')
     .description('Installs a tool@version, if `version` is not specified - latest will be installed')
     .argument('<string>', 'tool')
-    .option('-v, --version <string>', 'version number', 'latest')
-    .action((tool: keyof typeof cpp, options: { version: 'latest' | Tool['version']; }) => {
+    .argument('<string>', 'version number')
+    .action(async (tool: keyof typeof cpp, version: 'latest' | Tool['version']) => {
         const versionRegex = /(latest|^\d+\.\d+\.\d+$)/;
 
-        if (!versionRegex.test(options.version)) {
+        if (!versionRegex.test(version)) {
             console.log('Error: Version must follow the format {number}.{number}.{number}');
             return;
         }
 
         if (cpp[tool]) {
-            const _tool = cpp[tool](options.version);
-            _tool.install();
+            const _tool = cpp[tool](version);
+            await _tool.install();
         }
     });
 
 program.command('use')
     .description('Symlinks a tool@version')
     .argument('<string>', 'tool')
-    .requiredOption('-v, --version <string>', 'version number')
-    .action((tool: keyof typeof cpp, options: { version: 'latest' | Tool['version']; }) => {
+    .argument('<string>', 'version number')
+    .action(async (tool: keyof typeof cpp, version: 'latest' | Tool['version']) => {
         const versionRegex = /^\d+\.\d+\.\d+$/;
 
-        if (!versionRegex.test(options.version)) {
+        if (!versionRegex.test(version)) {
             console.log('Error: Version must follow the format {number}.{number}.{number}');
             return;
         }
 
         if (cpp[tool]) {
-            const _tool = cpp[tool](options.version);
+            const _tool = cpp[tool](version);
             _tool.use();
+        }
+    });
+
+program.command('delete')
+    .description('deletes a tool@version')
+    .argument('<string>', 'tool')
+    .argument('<string>', 'version number')
+    .action(async (tool: keyof typeof cpp, version: 'latest' | Tool['version']) => {
+        const versionRegex = /^\d+\.\d+\.\d+$/;
+
+        if (!versionRegex.test(version)) {
+            console.log('Error: Version must follow the format {number}.{number}.{number}');
+            return;
+        }
+
+        if (cpp[tool]) {
+            const _tool = cpp[tool](version);
+            await _tool.delete();
         }
     });
 
