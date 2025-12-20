@@ -62,8 +62,10 @@ describe('cpp/cmake', async () => {
 
         await cmake.install();
         expect(fs.existsSync(path.join(dir, cmake.version))).toBe(true);
+        expect(fs.existsSync(path.join(dir, cmake.pkgName))).toBe(true);
 
         await cmake.delete();
         expect(fs.existsSync(path.join(dir, cmake.version))).toBe(false);
+        expect(fs.existsSync(path.join(dir, cmake.pkgName))).toBe(false);
     });
 });
