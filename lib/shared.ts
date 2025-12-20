@@ -188,6 +188,7 @@ export const rename = (pathname: string, oldName: string, newName: string) => {
  * await for `fs.rm` to complete
  */
 export const remove = (path: string) => {
+    // should maybe be promise.allSetlled? and accept ...args?
     return new Promise<void>((res, rej) => {
         fs.rm(path, { recursive: true, force: true }, (err) => {
             if (err) {

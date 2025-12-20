@@ -54,8 +54,10 @@ describe('cpp/conan', async () => {
         const dir = ensureToolDir('cpp/conan', { check: true });
         await conan.install();
         expect(fs.existsSync(path.join(dir, conan.version))).toBe(true);
+        expect(fs.existsSync(path.join(dir, conan.pkgName))).toBe(true);
 
         await conan.delete();
         expect(fs.existsSync(path.join(dir, conan.version))).toBe(false);
+        expect(fs.existsSync(path.join(dir, conan.pkgName))).toBe(false);
     });
 });

@@ -66,6 +66,8 @@ export const conan = (version: Tool['version']): Tool => ({
     },
     async delete() {
         const conanDir = ensureToolDir(`cpp/conan/${this.version}`, { check: true });
-        await remove(conanDir);
+        const conanArchiveDir = ensureToolDir(`cpp/conan/${this.pkgName}`, { check: true });
+
+        await Promise.all([remove(conanDir), remove(conanArchiveDir)]);
     }
 });
