@@ -117,11 +117,12 @@ export function extract(archivePath: string, outDir: string): Promise<void> {
             fs.mkdirSync(outDir, { recursive: true });
         }
 
-        execFile('tar', ['-xf', archivePath, '-C', outDir], (err, _, stderr) => {
+        logger.info(`Extracting ${archivePath} to ${outDir}...`);
+        return execFile('tar', ['-xf', archivePath, '-C', outDir], (err, _, stderr) => {
             if (err) {
                 return reject(new Error(`Extraction failed: ${stderr || err.message}`));
             }
-            resolve();
+            return resolve();
         });
     });
 }
