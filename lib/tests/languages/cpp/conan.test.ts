@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import fs, { readdirSync } from 'fs';
+import fs from 'fs';
 import path from 'path';
 
 import { EDDY_BIN_DIR } from "@/lib/consts";
