@@ -6,7 +6,7 @@ import path from 'path';
 import { EDDY_BIN_DIR } from "@/lib/consts";
 
 describe('go', async () => {
-    const goMod = await import("@/lib/languages/go");
+    const goMod = await import("@/lib/languages/go/lang");
     const go = goMod.go('1.25.5');
 
     test.if(process.platform === 'darwin')("checks pkgName", () => {
