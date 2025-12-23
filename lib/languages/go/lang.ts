@@ -7,6 +7,7 @@ import {
     symlink,
     remove,
 } from '@/lib/shared';
+import { logger } from '@/lib/logger';
 
 export const go = (version: Tool['version']): Tool => ({
     name: 'go',
@@ -54,9 +55,18 @@ export const go = (version: Tool['version']): Tool => ({
     },
 
     async delete() {
-        const goDir = ensureToolDir(`go/${this.version}`);
-        const goArchive = ensureToolDir(`go/${this.pkgName}`);
+        const goDir = ensureToolDir(`go/${this.version}`, { check: true });
+        const goArchive = ensureToolDir(`go/${this.pkgName}`, { check: true });
 
-        await Promise.all([remove(goArchive), remove(goDir)]);
+        logger.info(`Deleting ${this.name}@${this.version}`);
+
+        const result = await Promise.allSettled([remove(goArchive), remove(goDir)]);
+
+        if (result.some(r => r.status === 'rejected')) {
+            logger.info(`Failed to delete ${this.name}@${this.version}`);
+        } else {
+            logger.info(`Successfully deleted ${this.name}@${this.version}`);
+        }
+
     }
 });
