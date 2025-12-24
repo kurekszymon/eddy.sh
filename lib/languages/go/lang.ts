@@ -67,6 +67,5 @@ export const go = (version: Tool['version']): Tool => ({
         } else {
             logger.info(`Successfully deleted ${this.name}@${this.version}`);
         }
-
     }
 });

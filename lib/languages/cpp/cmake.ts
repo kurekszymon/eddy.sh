@@ -12,6 +12,7 @@ import {
     symlink
 } from "@/lib/shared";
 import type { Tool } from "@/lib/types";
+import { logger } from '@/lib/logger';
 
 
 export const CMAKE_BIN_PATH = process.platform === 'darwin'
@@ -80,6 +81,13 @@ export const cmake = (version: Tool['version']): Tool => ({
         const cmakeDir = ensureToolDir(`cpp/cmake/${this.version}`, { check: true });
         const cmakeArchive = ensureToolDir(`cpp/cmake/${this.pkgName}`, { check: true });
 
-        await Promise.all([remove(cmakeArchive), remove(cmakeDir)]);
+
+        const result = await Promise.allSettled([remove(cmakeArchive), remove(cmakeDir)]);
+
+        if (result.some(r => r.status === 'rejected')) {
+            logger.info(`Failed to delete ${this.name}@${this.version}`);
+        } else {
+            logger.info(`Successfully deleted ${this.name}@${this.version}`);
+        }
     }
 });
