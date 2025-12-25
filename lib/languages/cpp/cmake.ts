@@ -16,7 +16,6 @@ export const cmake = (version: Tool['version']): Tool => ({
     lang: 'cpp',
     links: ['ccmake', 'cmake', 'cpack', 'ctest'],
     customBinPath: CMAKE_BIN_PATH,
-    renameNested: true,
 
     get pkgName() {
         if (process.platform === 'win32') {

@@ -10,7 +10,6 @@ export interface Tool {
     lang: 'cpp' | 'go',
     customBinPath?: string;
     links?: string[];
-    renameNested?: boolean;
 
     download?: () => Promise<string>;
     install?: () => Promise<void>;

@@ -16,7 +16,6 @@ export class ToolBlueprint implements IToolBlueprint {
 
     private links: string[] = [];
     private customBinPath: string = '';
-    private renameNested: boolean = false;
 
     constructor(
         name: string,
@@ -26,7 +25,6 @@ export class ToolBlueprint implements IToolBlueprint {
         version: ITool['version'],
         links?: string[],
         customBinPath?: string,
-        renameNested?: boolean,
     ) {
         this.url = url;
         this.name = name;
@@ -36,7 +34,6 @@ export class ToolBlueprint implements IToolBlueprint {
 
         this.links = links || [];
         this.customBinPath = customBinPath || '';
-        this.renameNested = Boolean(renameNested);
     }
 
     async download(): Promise<string> {
@@ -57,9 +54,6 @@ export class ToolBlueprint implements IToolBlueprint {
         const archivePath = await this.download();
 
         await extract(archivePath, dir);
-        if (this.renameNested) {
-            await rename(dir, getBasePkgName(this.pkgName), this.version);
-        }
     };
 
     use(): void {
