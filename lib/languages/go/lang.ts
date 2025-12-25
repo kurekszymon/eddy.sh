@@ -12,6 +12,7 @@ import { logger } from '@/lib/logger';
 export const go = (version: Tool['version']): Tool => ({
     name: 'go',
     version,
+    lang: 'go',
 
     get pkgName() {
         const platform = process.platform;

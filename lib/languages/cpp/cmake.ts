@@ -1,18 +1,4 @@
-import path from 'path';
-import fs from 'fs';
-
-import {
-    downloadFile,
-    ensureToolDir,
-    extract,
-    getBasePkgName,
-    remove,
-    rename,
-    resolveLatestVersion,
-    symlink
-} from "@/lib/shared";
 import type { Tool } from "@/lib/types";
-import { logger } from '@/lib/logger';
 
 
 export const CMAKE_BIN_PATH = process.platform === 'darwin'
@@ -27,6 +13,10 @@ export const CMAKE_BIN_PATH = process.platform === 'darwin'
 export const cmake = (version: Tool['version']): Tool => ({
     name: 'cmake',
     version,
+    lang: 'cpp',
+    links: ['ccmake', 'cmake', 'cpack', 'ctest'],
+    customBinPath: CMAKE_BIN_PATH,
+    renameNested: true,
 
     get pkgName() {
         if (process.platform === 'win32') {
@@ -45,49 +35,4 @@ export const cmake = (version: Tool['version']): Tool => ({
 
         return `https://github.com/Kitware/CMake/releases/download/v${this.version}/${this.pkgName}`;
     },
-
-    async download() {
-        const dir = ensureToolDir('cpp/cmake');
-        const filePath = path.join(dir, this.pkgName);
-
-        await downloadFile(filePath, this.url);
-        return filePath;
-    },
-    async install() {
-        const cmakeDir = ensureToolDir('cpp/cmake');
-
-        if (version === 'latest') {
-            this.version = await resolveLatestVersion(this.url);
-        }
-
-        const archivePath = await this.download();
-        await extract(archivePath, cmakeDir);
-        await rename(cmakeDir, getBasePkgName(this.pkgName), this.version);
-    },
-    use() {
-        const cmakeDir = ensureToolDir('cpp/cmake', { check: true });
-
-        const binDir = path.join(cmakeDir, this.version, CMAKE_BIN_PATH);
-
-        if (!fs.existsSync(binDir)) {
-            throw new Error(`${this.name}@${this.version} is not installed yet.`);
-        }
-
-        ['ccmake', 'cmake', 'cpack', 'ctest'].forEach(bin => {
-            symlink(binDir, bin);
-        });
-    },
-    async delete() {
-        const cmakeDir = ensureToolDir(`cpp/cmake/${this.version}`, { check: true });
-        const cmakeArchive = ensureToolDir(`cpp/cmake/${this.pkgName}`, { check: true });
-
-
-        const result = await Promise.allSettled([remove(cmakeArchive), remove(cmakeDir)]);
-
-        if (result.some(r => r.status === 'rejected')) {
-            logger.info(`Failed to delete ${this.name}@${this.version}`);
-        } else {
-            logger.info(`Successfully deleted ${this.name}@${this.version}`);
-        }
-    }
 });

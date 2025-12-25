@@ -15,6 +15,7 @@ import {
 export const bazel = (version: Tool['version']): Tool => ({
     name: 'bazel',
     version,
+    lang: 'cpp',
 
     get pkgName() {
         if (process.platform === 'win32') {

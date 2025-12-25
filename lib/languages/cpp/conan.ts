@@ -18,6 +18,7 @@ import {
 export const conan = (version: Tool['version']): Tool => ({
     name: 'conan',
     version,
+    lang: 'cpp',
 
     get pkgName() {
         if (process.platform === 'win32') {

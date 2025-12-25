@@ -21,6 +21,7 @@ import {
 export const ninja = (version: Tool['version']): Tool => ({
     name: 'ninja',
     version,
+    lang: 'cpp',
 
     get pkgName() {
         if (process.platform === 'win32') {
