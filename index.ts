@@ -1,67 +1,77 @@
-import { Command } from "commander";
-import { languages, type Language } from "./lib/languages";
-import type { Tool } from "./lib/types";
+// import { Command } from "commander";
+// import { languages, type Language } from "./lib/languages";
+// import type { Tool } from "./lib/types";
 
-const program = new Command();
+import { cpp } from "./lib/languages/cpp";
+import { ToolBlueprint } from "./lib/languages/tool";
 
-// TODO: cleanup
-program
-    .name('eddy.sh')
-    .description('CLI to install some self container pkgs')
-    .version('0.0.1');
+// const program = new Command();
 
-program.command('install')
-    .description('Installs a tool@version, if `version` is not specified - latest will be installed')
-    .argument('<string>', 'tool')
-    .argument('<string>', 'version number')
-    .action(async (tool: Language, version: 'latest' | Tool['version']) => {
-        const versionRegex = /(latest|^\d+\.\d+\.\d+$)/;
+// // TODO: cleanup
+// program
+//     .name('eddy.sh')
+//     .description('CLI to install some self container pkgs')
+//     .version('0.0.1');
 
-        if (!versionRegex.test(version)) {
-            console.log('Error: Version must follow the format {number}.{number}.{number}');
-            return;
-        }
+// program.command('install')
+//     .description('Installs a tool@version, if `version` is not specified - latest will be installed')
+//     .argument('<string>', 'tool')
+//     .argument('<string>', 'version number')
+//     .action(async (tool: Language, version: 'latest' | Tool['version']) => {
+//         const versionRegex = /(latest|^\d+\.\d+\.\d+$)/;
 
-        if (languages[tool]) {
-            const _tool = languages[tool](version);
-            await _tool.install();
-        }
-    });
+//         if (!versionRegex.test(version)) {
+//             console.log('Error: Version must follow the format {number}.{number}.{number}');
+//             return;
+//         }
 
-program.command('use')
-    .description('Symlinks a tool@version')
-    .argument('<string>', 'tool')
-    .argument('<string>', 'version number')
-    .action(async (tool: Language, version: 'latest' | Tool['version']) => {
-        const versionRegex = /^\d+\.\d+\.\d+$/;
+//         if (languages[tool]) {
+//             const _tool = languages[tool](version);
+//             await _tool.install();
+//         }
+//     });
 
-        if (!versionRegex.test(version)) {
-            console.log('Error: Version must follow the format {number}.{number}.{number}');
-            return;
-        }
+// program.command('use')
+//     .description('Symlinks a tool@version')
+//     .argument('<string>', 'tool')
+//     .argument('<string>', 'version number')
+//     .action(async (tool: Language, version: 'latest' | Tool['version']) => {
+//         const versionRegex = /^\d+\.\d+\.\d+$/;
 
-        if (languages[tool]) {
-            const _tool = languages[tool](version);
-            _tool.use();
-        }
-    });
+//         if (!versionRegex.test(version)) {
+//             console.log('Error: Version must follow the format {number}.{number}.{number}');
+//             return;
+//         }
 
-program.command('delete')
-    .description('deletes a tool@version')
-    .argument('<string>', 'tool')
-    .argument('<string>', 'version number')
-    .action(async (tool: Language, version: 'latest' | Tool['version']) => {
-        const versionRegex = /^\d+\.\d+\.\d+$/;
+//         if (languages[tool]) {
+//             const _tool = languages[tool](version);
+//             _tool.use();
+//         }
+//     });
 
-        if (!versionRegex.test(version)) {
-            console.log('Error: Version must follow the format {number}.{number}.{number}');
-            return;
-        }
+// program.command('delete')
+//     .description('deletes a tool@version')
+//     .argument('<string>', 'tool')
+//     .argument('<string>', 'version number')
+//     .action(async (tool: Language, version: 'latest' | Tool['version']) => {
+//         const versionRegex = /^\d+\.\d+\.\d+$/;
 
-        if (languages[tool]) {
-            const _tool = languages[tool](version);
-            await _tool.delete();
-        }
-    });
+//         if (!versionRegex.test(version)) {
+//             console.log('Error: Version must follow the format {number}.{number}.{number}');
+//             return;
+//         }
 
-program.parse();
+//         if (languages[tool]) {
+//             const _tool = languages[tool](version);
+//             await _tool.delete();
+//         }
+//     });
+
+// program.parse();
+
+const { name, pkgName, version, lang, links, url, customBinPath } = cpp.conan('2.24.0');
+
+// accept object instead
+const d = new ToolBlueprint(name, pkgName, url, lang, version, links, customBinPath);
+
+await d.use();

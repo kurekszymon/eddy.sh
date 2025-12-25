@@ -7,6 +7,7 @@ import { getBasePkgName } from '@/lib/shared';
 export const CMAKE_BIN_PATH = process.platform === 'darwin'
     ? 'CMake.app/Contents/bin'
     : 'bin';
+
 /**
  * cmake tool shape; call like `cmake('4.1.4')` or `cmake('latest')`
  * @param version version of a lib, pass semantic version without leading `v`
@@ -15,8 +16,8 @@ export const CMAKE_BIN_PATH = process.platform === 'darwin'
  */
 export const cmake = (version: Tool['version']): Tool => ({
     name: 'cmake',
-    version,
     lang: 'cpp',
+    version,
     links: ['ccmake', 'cmake', 'cpack', 'ctest'],
 
     get customBinPath() {
