@@ -1,4 +1,7 @@
+import path from 'path';
+
 import type { Tool } from "@/lib/types";
+import { getBasePkgName } from '@/lib/shared';
 
 
 export const CMAKE_BIN_PATH = process.platform === 'darwin'
@@ -15,7 +18,10 @@ export const cmake = (version: Tool['version']): Tool => ({
     version,
     lang: 'cpp',
     links: ['ccmake', 'cmake', 'cpack', 'ctest'],
-    customBinPath: CMAKE_BIN_PATH,
+
+    get customBinPath() {
+        return path.join(getBasePkgName(this.pkgName), CMAKE_BIN_PATH);
+    },
 
     get pkgName() {
         if (process.platform === 'win32') {
