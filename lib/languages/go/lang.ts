@@ -1,6 +1,6 @@
-import type { Tool } from '@/lib/types';
+import type { IToolInfo, ToolVersion } from '@/lib/types';
 
-export const lang = (version: Tool['version']): Tool => ({
+export const lang = (version: ToolVersion): IToolInfo => ({
     name: 'go-language',
     lang: 'go',
     version,

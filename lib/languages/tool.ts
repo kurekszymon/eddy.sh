@@ -1,4 +1,4 @@
-import { type InstallStep, type Tool as ITool, type IToolBlueprint } from '@/lib/types';
+import { type InstallStep, type IToolInfo, type IToolBlueprint } from '@/lib/types';
 import { downloadFile, ensureToolDir, extract, rename, remove, resolveLatestVersion, symlink, chmod755 } from '../shared';
 
 import path from 'path';
@@ -8,13 +8,13 @@ import { logger } from '../logger';
 // TODO: improve logging
 
 export class ToolBlueprint implements IToolBlueprint {
-    private info: ITool;
+    private info: IToolInfo;
 
     private hasStep(step: InstallStep) {
         return this.info.steps.find(s => s === step);
     };
 
-    constructor(info: ITool) {
+    constructor(info: IToolInfo) {
         this.info = info;
     }
 

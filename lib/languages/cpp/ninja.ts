@@ -1,4 +1,4 @@
-import type { Tool } from "@/lib/types";
+import type { IToolInfo, ToolVersion } from "@/lib/types";
 
 /**
  * ninja tool shape; call like `ninja('1.13.2')`
@@ -6,7 +6,7 @@ import type { Tool } from "@/lib/types";
  *
  * @link https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-mac.zip
  */
-export const ninja = (version: Tool['version']): Tool => ({
+export const ninja = (version: ToolVersion): IToolInfo => ({
     name: 'ninja',
     version,
     lang: 'cpp',

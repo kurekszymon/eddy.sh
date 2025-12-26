@@ -1,6 +1,6 @@
-import type { Tool } from "@/lib/types";
+import type { IToolInfo, ToolVersion } from "@/lib/types";
 
-export const bazel = (version: Tool['version']): Tool => ({
+export const bazel = (version: ToolVersion): IToolInfo => ({
     name: 'bazel',
     lang: 'cpp',
     version,

@@ -2,9 +2,11 @@ export type semver = `${number}.${number}.${number}`;
 
 export type InstallStep = 'extract' | 'rename' | 'chmod';
 
-export interface Tool {
+export type ToolVersion = 'latest' | semver;
+
+export interface IToolInfo {
     name: string;
-    version: 'latest' | semver;
+    version: ToolVersion;
 
     get pkgName(): string;
     get url(): string;
@@ -13,16 +15,11 @@ export interface Tool {
     customBinPath?: string;
     links?: string[];
     steps: InstallStep[];
-
-    download?: () => Promise<string>;
-    install?: () => Promise<void>;
-    delete?: () => Promise<void>;
-    use?: () => void;
 }
 
 export interface IToolBlueprint {
     download: () => Promise<string>;
-    install: (opts: { renameNested: boolean; }) => Promise<void>;
+    install: () => Promise<void>;
     delete: () => Promise<void>;
     use: () => void;
 }

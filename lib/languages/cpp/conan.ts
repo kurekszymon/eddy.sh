@@ -1,6 +1,6 @@
-import type { Tool } from "@/lib/types";
+import type { IToolInfo, ToolVersion } from "@/lib/types";
 
-export const conan = (version: Tool['version']): Tool => ({
+export const conan = (version: ToolVersion): IToolInfo => ({
     name: 'conan',
     lang: 'cpp',
     version,

@@ -1,6 +1,6 @@
 import path from 'path';
 
-import type { Tool } from "@/lib/types";
+import type { IToolInfo, ToolVersion } from "@/lib/types";
 import { getBasePkgName } from '@/lib/shared';
 
 
@@ -14,7 +14,7 @@ export const CMAKE_BIN_PATH = process.platform === 'darwin'
  *
  * @link https://github.com/Kitware/CMake/releases/download/v4.1.4/cmake-4.1.4-macos-universal.tar.gz
  */
-export const cmake = (version: Tool['version']): Tool => ({
+export const cmake = (version: ToolVersion): IToolInfo => ({
     name: 'cmake',
     lang: 'cpp',
     version,
