@@ -1,5 +1,5 @@
-import { go as _go } from './lang';
+import { lang } from './lang';
 
 export const go = {
-    go: _go
+    lang
 };

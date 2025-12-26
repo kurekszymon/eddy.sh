@@ -3,6 +3,7 @@
 // import type { Tool } from "./lib/types";
 
 import { cpp } from "./lib/languages/cpp";
+import { go } from "./lib/languages/go";
 import { ToolBlueprint } from "./lib/languages/tool";
 
 // const program = new Command();
@@ -69,9 +70,8 @@ import { ToolBlueprint } from "./lib/languages/tool";
 
 // program.parse();
 
-const toolInfo = cpp.conan('2.24.0');
+const toolInfo = go.lang('1.25.5');
 
-// accept object instead
 const d = new ToolBlueprint(toolInfo);
 
 await d.delete();
