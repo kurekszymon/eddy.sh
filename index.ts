@@ -69,9 +69,9 @@ import { ToolBlueprint } from "./lib/languages/tool";
 
 // program.parse();
 
-const { name, pkgName, version, lang, links, url, customBinPath } = cpp.conan('2.24.0');
+const toolInfo = cpp.conan('2.24.0');
 
 // accept object instead
-const d = new ToolBlueprint(name, pkgName, url, lang, version, links, customBinPath);
+const d = new ToolBlueprint(toolInfo);
 
-await d.use();
+await d.delete();

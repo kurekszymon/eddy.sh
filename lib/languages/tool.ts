@@ -1,5 +1,5 @@
 import { type Tool as ITool, type IToolBlueprint } from '@/lib/types';
-import { downloadFile, ensureToolDir, extract, getBasePkgName, remove, rename, resolveLatestVersion, symlink } from '../shared';
+import { downloadFile, ensureToolDir, extract, remove, resolveLatestVersion, symlink } from '../shared';
 
 import path from 'path';
 import fs from 'fs';
@@ -8,48 +8,30 @@ import { logger } from '../logger';
 // TODO: improve logging
 
 export class ToolBlueprint implements IToolBlueprint {
-    private url: string;
-    private name: string;
-    private pkgName: string;
-    private lang: ITool['lang'];
-    private version: ITool['version'];
+    private info: ITool;
 
-    private links: string[] = [];
-    private customBinPath: string = '';
-
-    constructor(
-        name: string,
-        pkgName: string,
-        url: string,
-        lang: ITool['lang'],
-        version: ITool['version'],
-        links?: string[],
-        customBinPath?: string,
-    ) {
-        this.url = url;
-        this.name = name;
-        this.pkgName = pkgName;
-        this.version = version;
-        this.lang = lang;
-
-        this.links = links || [];
-        this.customBinPath = customBinPath || '';
+    constructor(info: ITool) {
+        this.info = info;
     }
 
     async download(): Promise<string> {
-        const dir = ensureToolDir(`${this.lang}/${this.name}`);
-        const filePath = path.join(dir, this.pkgName);
+        const { lang, name, pkgName, url } = this.info;
 
-        await downloadFile(filePath, this.url);
+        const dir = ensureToolDir(`${lang}/${name}`);
+        const filePath = path.join(dir, pkgName);
+
+        await downloadFile(filePath, url);
         return filePath;
     };
 
     async install(): Promise<void> {
-        if (this.version === 'latest') {
-            this.version = await resolveLatestVersion(this.url);
+        const { lang, name, version, url } = this.info;
+
+        if (version === 'latest') {
+            this.info.version = await resolveLatestVersion(url);
         }
 
-        const dir = ensureToolDir(`${this.lang}/${this.name}/${this.version}`);
+        const dir = ensureToolDir(`${lang}/${name}/${version}`);
 
         const archivePath = await this.download();
 
@@ -57,31 +39,35 @@ export class ToolBlueprint implements IToolBlueprint {
     };
 
     use(): void {
-        const dir = ensureToolDir(`${this.lang}/${this.name}`, { check: true });
-        const binDir = path.join(dir, this.version, this.customBinPath || '');
+        const { lang, name, version, links, customBinPath } = this.info;
+
+        const dir = ensureToolDir(`${lang}/${name}`, { check: true });
+        const binDir = path.join(dir, version, customBinPath || '');
 
         if (!fs.existsSync(binDir)) {
-            throw new Error(`${this.name}@${this.version} is not installed yet.`);
+            throw new Error(`${name}@${version} is not installed yet.`);
         }
 
-        if (this.links.length > 0) {
-            return this.links.forEach(bin => symlink(binDir, bin));
+        if (links && links.length > 0) {
+            return links.forEach(bin => symlink(binDir, bin));
         }
 
-        return symlink(binDir, this.name);
+        return symlink(binDir, name);
     };
 
     async delete(): Promise<void> {
-        const dir = ensureToolDir(`${this.lang}/${this.name}/${this.version}`, { check: true });
-        const archive = ensureToolDir(`${this.lang}/${this.name}/${this.pkgName}`, { check: true });
+        const { lang, name, version, pkgName } = this.info;
+
+        const dir = ensureToolDir(`${lang}/${name}/${version}`, { check: true });
+        const archive = ensureToolDir(`${lang}/${name}/${pkgName}`, { check: true });
 
         const result = await Promise.allSettled([remove(archive), remove(dir)]);
 
         // TODO: notify about failed processes
         if (result.some(r => r.status === 'rejected')) {
-            logger.info(`Failed to delete ${this.name}@${this.version}`);
+            logger.info(`Failed to delete ${name}@${version}`);
         } else {
-            logger.info(`Successfully deleted ${this.name}@${this.version}`);
+            logger.info(`Successfully deleted ${name}@${version}`);
         }
     };
 }
