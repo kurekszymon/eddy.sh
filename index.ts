@@ -1,77 +1,68 @@
-// import { Command } from "commander";
-// import { languages, type Language } from "./lib/languages";
-// import type { Tool } from "./lib/types";
-
-import { cpp } from "./lib/languages/cpp";
-import { go } from "./lib/languages/go";
+import { Command } from "commander";
+import { languages, type Language } from "./lib/languages";
+import type { ToolVersion } from "./lib/types";
 import { ToolBlueprint } from "./lib/languages/blueprint";
 
-// const program = new Command();
+const program = new Command();
 
-// // TODO: cleanup
-// program
-//     .name('eddy.sh')
-//     .description('CLI to install some self container pkgs')
-//     .version('0.0.1');
+// TODO: cleanup
+program
+    .name('eddy.sh')
+    .description('CLI to install some self container pkgs')
+    .version('0.0.1');
 
-// program.command('install')
-//     .description('Installs a tool@version, if `version` is not specified - latest will be installed')
-//     .argument('<string>', 'tool')
-//     .argument('<string>', 'version number')
-//     .action(async (tool: Language, version: 'latest' | Tool['version']) => {
-//         const versionRegex = /(latest|^\d+\.\d+\.\d+$)/;
+program.command('install')
+    .description('Installs a tool@version, if `version` is not specified - latest will be installed')
+    .argument('<string>', 'tool')
+    .argument('<string>', 'version number')
+    .action(async (tool: Language, version: ToolVersion) => {
+        const versionRegex = /(latest|^\d+\.\d+\.\d+$)/;
 
-//         if (!versionRegex.test(version)) {
-//             console.log('Error: Version must follow the format {number}.{number}.{number}');
-//             return;
-//         }
+        if (!versionRegex.test(version)) {
+            console.log('Error: Version must follow the format {number}.{number}.{number}');
+            return;
+        }
 
-//         if (languages[tool]) {
-//             const _tool = languages[tool](version);
-//             await _tool.install();
-//         }
-//     });
+        if (languages[tool]) {
+            const blueprint = new ToolBlueprint(languages[tool](version));
+            await blueprint.install();
+        }
+    });
 
-// program.command('use')
-//     .description('Symlinks a tool@version')
-//     .argument('<string>', 'tool')
-//     .argument('<string>', 'version number')
-//     .action(async (tool: Language, version: 'latest' | Tool['version']) => {
-//         const versionRegex = /^\d+\.\d+\.\d+$/;
+program.command('use')
+    .description('Symlinks a tool@version')
+    .argument('<string>', 'tool')
+    .argument('<string>', 'version number')
+    .action(async (tool: Language, version: ToolVersion) => {
+        const versionRegex = /^\d+\.\d+\.\d+$/;
 
-//         if (!versionRegex.test(version)) {
-//             console.log('Error: Version must follow the format {number}.{number}.{number}');
-//             return;
-//         }
+        if (!versionRegex.test(version)) {
+            console.log('Error: Version must follow the format {number}.{number}.{number}');
+            return;
+        }
 
-//         if (languages[tool]) {
-//             const _tool = languages[tool](version);
-//             _tool.use();
-//         }
-//     });
+        if (languages[tool]) {
+            const blueprint = new ToolBlueprint(languages[tool](version));
+            blueprint.use();
+        }
+    });
 
-// program.command('delete')
-//     .description('deletes a tool@version')
-//     .argument('<string>', 'tool')
-//     .argument('<string>', 'version number')
-//     .action(async (tool: Language, version: 'latest' | Tool['version']) => {
-//         const versionRegex = /^\d+\.\d+\.\d+$/;
+program.command('delete')
+    .description('deletes a tool@version')
+    .argument('<string>', 'tool')
+    .argument('<string>', 'version number')
+    .action(async (tool: Language, version: ToolVersion) => {
+        const versionRegex = /^\d+\.\d+\.\d+$/;
 
-//         if (!versionRegex.test(version)) {
-//             console.log('Error: Version must follow the format {number}.{number}.{number}');
-//             return;
-//         }
+        if (!versionRegex.test(version)) {
+            console.log('Error: Version must follow the format {number}.{number}.{number}');
+            return;
+        }
 
-//         if (languages[tool]) {
-//             const _tool = languages[tool](version);
-//             await _tool.delete();
-//         }
-//     });
+        if (languages[tool]) {
+            const blueprint = new ToolBlueprint(languages[tool](version));
+            await blueprint.delete();
+        }
+    });
 
-// program.parse();
-
-const toolInfo = go.lang('1.25.5');
-
-const d = new ToolBlueprint(toolInfo);
-
-await d.install();
+program.parse();
