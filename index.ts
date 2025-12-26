@@ -4,7 +4,7 @@
 
 import { cpp } from "./lib/languages/cpp";
 import { go } from "./lib/languages/go";
-import { ToolBlueprint } from "./lib/languages/tool";
+import { ToolBlueprint } from "./lib/languages/blueprint";
 
 // const program = new Command();
 
@@ -74,4 +74,4 @@ const toolInfo = go.lang('1.25.5');
 
 const d = new ToolBlueprint(toolInfo);
 
-await d.delete();
+await d.install();

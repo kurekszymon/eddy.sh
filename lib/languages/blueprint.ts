@@ -1,9 +1,18 @@
 import { type InstallStep, type IToolInfo, type IToolBlueprint } from '@/lib/types';
-import { downloadFile, ensureToolDir, extract, rename, remove, resolveLatestVersion, symlink, chmod755 } from '../shared';
+import {
+    downloadFile,
+    ensureToolDir,
+    extract,
+    rename,
+    remove,
+    resolveLatestVersion,
+    symlink,
+    chmod755
+} from '@/lib/shared';
+import { logger } from '@/lib/logger';
 
 import path from 'path';
 import fs from 'fs';
-import { logger } from '../logger';
 
 // TODO: improve logging
 
