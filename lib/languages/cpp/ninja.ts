@@ -11,6 +11,8 @@ export const ninja = (version: Tool['version']): Tool => ({
     version,
     lang: 'cpp',
 
+    steps: ['extract'],
+
     get pkgName() {
         if (process.platform === 'win32') {
             return 'ninja-win.zip';

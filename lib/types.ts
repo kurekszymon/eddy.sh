@@ -1,5 +1,7 @@
 export type semver = `${number}.${number}.${number}`;
 
+export type InstallStep = 'extract' | 'rename' | 'chmod';
+
 export interface Tool {
     name: string;
     version: 'latest' | semver;
@@ -10,6 +12,7 @@ export interface Tool {
     lang: 'cpp' | 'go',
     customBinPath?: string;
     links?: string[];
+    steps: InstallStep[];
 
     download?: () => Promise<string>;
     install?: () => Promise<void>;

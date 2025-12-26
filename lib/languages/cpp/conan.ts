@@ -5,7 +5,9 @@ export const conan = (version: Tool['version']): Tool => ({
     lang: 'cpp',
     version,
 
+    steps: ['extract'],
     customBinPath: 'bin',
+
     get pkgName() {
         if (process.platform === 'win32') {
             return `conan-${this.version}-windows-x86_64.zip`;

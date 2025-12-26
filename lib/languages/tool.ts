@@ -1,5 +1,5 @@
-import { type Tool as ITool, type IToolBlueprint } from '@/lib/types';
-import { downloadFile, ensureToolDir, extract, remove, resolveLatestVersion, symlink } from '../shared';
+import { type InstallStep, type Tool as ITool, type IToolBlueprint } from '@/lib/types';
+import { downloadFile, ensureToolDir, extract, rename, remove, resolveLatestVersion, symlink, chmod755 } from '../shared';
 
 import path from 'path';
 import fs from 'fs';
@@ -10,14 +10,18 @@ import { logger } from '../logger';
 export class ToolBlueprint implements IToolBlueprint {
     private info: ITool;
 
+    private hasStep(step: InstallStep) {
+        return this.info.steps.find(s => s === step);
+    };
+
     constructor(info: ITool) {
         this.info = info;
     }
 
     async download(): Promise<string> {
-        const { lang, name, pkgName, url } = this.info;
+        const { lang, name, pkgName, version, url } = this.info;
 
-        const dir = ensureToolDir(`${lang}/${name}`);
+        const dir = ensureToolDir(`${lang}/${name}/${version}`);
         const filePath = path.join(dir, pkgName);
 
         await downloadFile(filePath, url);
@@ -25,24 +29,34 @@ export class ToolBlueprint implements IToolBlueprint {
     };
 
     async install(): Promise<void> {
-        const { lang, name, version, url } = this.info;
+        const { lang, name, version, url, pkgName } = this.info;
 
         if (version === 'latest') {
             this.info.version = await resolveLatestVersion(url);
         }
 
-        const dir = ensureToolDir(`${lang}/${name}/${version}`);
-
         const archivePath = await this.download();
+        const dir = path.dirname(archivePath);
 
-        await extract(archivePath, dir);
+        if (this.hasStep('extract')) {
+            await extract(archivePath, dir);
+        }
+
+        if (this.hasStep('rename')) {
+            await rename(dir, pkgName, name);
+        }
+
+        if (this.hasStep('chmod')) {
+            chmod755(dir, name);
+        }
     };
 
     use(): void {
         const { lang, name, version, links, customBinPath } = this.info;
 
-        const dir = ensureToolDir(`${lang}/${name}`, { check: true });
-        const binDir = path.join(dir, version, customBinPath || '');
+        const dir = ensureToolDir(`${lang}/${name}/${version}`, { check: true });
+
+        const binDir = path.join(dir, customBinPath || '');
 
         if (!fs.existsSync(binDir)) {
             throw new Error(`${name}@${version} is not installed yet.`);

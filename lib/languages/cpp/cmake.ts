@@ -18,7 +18,9 @@ export const cmake = (version: Tool['version']): Tool => ({
     name: 'cmake',
     lang: 'cpp',
     version,
+
     links: ['ccmake', 'cmake', 'cpack', 'ctest'],
+    steps: ['extract'],
 
     get customBinPath() {
         return path.join(getBasePkgName(this.pkgName), CMAKE_BIN_PATH);
