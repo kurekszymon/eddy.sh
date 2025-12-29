@@ -1,4 +1,7 @@
 import type { IToolInfo, ToolVersion } from '@/lib/types';
+import { getLatestGoVersion } from './fetchLatest';
+
+const latest = await getLatestGoVersion();
 
 export const lang = (version: ToolVersion): IToolInfo => ({
     name: 'go-language',
@@ -24,9 +27,9 @@ export const lang = (version: ToolVersion): IToolInfo => ({
 
     get url() {
         if (this.version === 'latest') {
-            // Go does not have a 'latest' download URL, so resolve it first
-            throw new Error('Please resolve the latest Go version before downloading');
+            this.version = latest;
         }
+
         return `https://go.dev/dl/${this.pkgName}`;
     },
 });

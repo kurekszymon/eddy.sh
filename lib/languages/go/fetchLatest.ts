@@ -1,6 +1,8 @@
 import https from 'https';
 
-function getLatestGoVersion() {
+import type { ToolVersion } from '@/lib/types';
+
+export async function getLatestGoVersion(): Promise<ToolVersion> {
     return new Promise((resolve, reject) => {
         https.get('https://go.dev/dl/?mode=json', res => {
             let data = '';
@@ -12,5 +14,3 @@ function getLatestGoVersion() {
         }).on('error', reject);
     });
 }
-
-getLatestGoVersion().then(console.log);
