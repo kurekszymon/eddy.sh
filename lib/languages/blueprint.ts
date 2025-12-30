@@ -19,10 +19,6 @@ import fs from 'fs';
 export class ToolBlueprint implements IToolBlueprint {
     private info: IToolInfo;
 
-    private hasStep(step: InstallStep) {
-        return this.info.steps.find(s => s === step);
-    };
-
     constructor(info: IToolInfo) {
         this.info = info;
     }
@@ -38,7 +34,7 @@ export class ToolBlueprint implements IToolBlueprint {
     };
 
     async install(): Promise<void> {
-        const { lang, name, version, url, pkgName } = this.info;
+        const { name, version, url, pkgName, steps } = this.info;
 
         if (version === 'latest') {
             this.info.version = await resolveLatestVersion(url);
@@ -47,16 +43,17 @@ export class ToolBlueprint implements IToolBlueprint {
         const archivePath = await this.download();
         const dir = path.dirname(archivePath);
 
-        if (this.hasStep('extract')) {
-            await extract(archivePath, dir);
-        }
+        const stepHandlers: Record<string, () => Promise<void>> = {
+            extract: async () => { await extract(archivePath, dir); },
+            rename: async () => { await rename(dir, pkgName, name); },
+            chmod: async () => { chmod755(dir, name); },
+        };
 
-        if (this.hasStep('rename')) {
-            await rename(dir, pkgName, name);
-        }
-
-        if (this.hasStep('chmod')) {
-            chmod755(dir, name);
+        for (const step of steps) {
+            const handler = stepHandlers[step];
+            if (handler) {
+                await handler();
+            }
         }
     };
 
