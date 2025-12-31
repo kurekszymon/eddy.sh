@@ -5,7 +5,6 @@ const latest = await getLatestGoVersion();
 
 export const lang = (version: ToolVersion): IToolInfo => ({
     name: 'go-language',
-    lang: 'go',
     version,
 
     steps: ['extract'],

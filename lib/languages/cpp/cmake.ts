@@ -16,7 +16,6 @@ export const CMAKE_BIN_PATH = process.platform === 'darwin'
  */
 export const cmake = (version: ToolVersion): IToolInfo => ({
     name: 'cmake',
-    lang: 'cpp',
     version,
 
     links: ['ccmake', 'cmake', 'cpack', 'ctest'],

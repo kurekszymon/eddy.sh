@@ -2,7 +2,6 @@ import type { IToolInfo, ToolVersion } from "@/lib/types";
 
 export const conan = (version: ToolVersion): IToolInfo => ({
     name: 'conan',
-    lang: 'cpp',
     version,
 
     steps: ['extract'],

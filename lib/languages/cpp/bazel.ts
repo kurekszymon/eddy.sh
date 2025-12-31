@@ -2,7 +2,6 @@ import type { IToolInfo, ToolVersion } from "@/lib/types";
 
 export const bazel = (version: ToolVersion): IToolInfo => ({
     name: 'bazel',
-    lang: 'cpp',
     version,
 
     steps: ['rename', 'chmod'],

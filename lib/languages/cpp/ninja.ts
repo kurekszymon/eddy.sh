@@ -9,7 +9,6 @@ import type { IToolInfo, ToolVersion } from "@/lib/types";
 export const ninja = (version: ToolVersion): IToolInfo => ({
     name: 'ninja',
     version,
-    lang: 'cpp',
 
     steps: ['extract'],
 

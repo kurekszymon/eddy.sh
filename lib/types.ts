@@ -11,7 +11,6 @@ export interface IToolInfo {
     get pkgName(): string;
     get url(): string;
 
-    lang: 'cpp' | 'go',
     customBinPath?: string;
     links?: string[];
     steps: InstallStep[];
